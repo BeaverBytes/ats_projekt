@@ -7,7 +7,7 @@
 declare(strict_types=1);
 
 // PDO-Instanz wird zwischengespeichert (Singleton pro Request)
-function db(): PDO {
+function getDatabaseConnection(): PDO {
     static $pdo = null;
     if ($pdo instanceof PDO) {
         return $pdo;

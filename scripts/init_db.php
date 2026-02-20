@@ -15,7 +15,7 @@ require __DIR__ . '/../src/db.php';
 
 try {
     // Konfigurierte PDO-Instanz (Singleton) abrufen
-    $pdo = db();
+    $pdo = getDatabaseConnection();
     
     // Schema-Datei einlesen
     $schemaFile = __DIR__ . '/../data/schema.sql';
