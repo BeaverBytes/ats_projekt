@@ -1,6 +1,7 @@
 <?php
 
-/** src/db.php
+/** 
+ * src/db.php
  * Liefert eine konfigurierte PDO-Verbindung zur SQLite-Datenbank.
  * Die Verbindung wird pro Request einmalig erzeugt (Singleton).
  */

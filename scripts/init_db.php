@@ -1,5 +1,6 @@
 <?php
-/** scripts/init_db.php 
+/** 
+ * scripts/init_db.php 
 * Initialisiert die Datenbankstruktur anhand der schema.sql
 */
 declare(strict_types=1);
