@@ -7,6 +7,7 @@
  */
 declare(strict_types=1);
 
+require_once __DIR__ . '/../src/config.php';
 // Einbindung des zentralen Authentifizierungsmoduls
 require_once __DIR__ . '/../src/auth.php';
 
@@ -89,5 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit">Anmelden</button>
         </div>
     </form>
+
+    <div style="margin-top: 20px;">
+        <a href="<?= BASE_PATH ?>/index.php"><- Zur Karriereseite</a>
+    </div>
 </body>
 </html>
