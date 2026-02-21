@@ -16,7 +16,9 @@ CREATE TABLE jobs (
   description TEXT NOT NULL,
   location VARCHAR(150),
   is_active Integer NOT NULL DEFAULT 1 CHECK(is_active IN(0,1)),
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_by_user_id INTEGER NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(created_by_user_id) REFERENCES users(user_id) ON DELETE RESTRICT
 );
 
 -- 3) APPLICATIONS
@@ -62,6 +64,8 @@ CREATE TABLE notes (
 CREATE INDEX idx_applications_job_id ON applications(job_id);
 CREATE INDEX idx_applications_last_name ON applications(applicant_last_name);
 CREATE INDEX idx_documents_application_id ON documents(application_id);
+CREATE INDEX idx_jobs_active_created_at ON jobs(is_active, created_at);
+CREATE INDEX idx_jobs_created_by_user_id ON jobs(created_by_user_id);
 CREATE INDEX idx_notes_application_id ON notes(application_id);
 CREATE INDEX idx_notes_user_id ON notes(user_id);
 
