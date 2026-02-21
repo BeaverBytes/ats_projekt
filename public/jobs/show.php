@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/jobs.php';
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -26,7 +27,7 @@ if ($job === null) {
     </head>
     <body>
         <main>
-            <p><a href="index.php">Zur Stellenliste</a></p>
+            <p><a href="<?= BASE_PATH ?>/jobs/index.php">Zur Stellenliste</a></p>
 
             <h1><?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?></h1>
 
@@ -42,7 +43,7 @@ if ($job === null) {
             <hr>
 
             <p>
-                <a href="../apply.php?job_id=<?= (int)$job['job_id'] ?>">Jetzt bewerben</a>
+                <a href="<?= BASE_PATH ?>/apply.php?job_id=<?= (int)$job['job_id'] ?>">Jetzt bewerben</a>
             </p>
         </main>
     </body>
