@@ -1,14 +1,15 @@
 <?php
-/**
- * public/admin/dashboard.php 
- * 
- * Zugriff ausschließlich mit Rolle "admin"
- */
-
 declare(strict_types=1);
 
+/**
+ * Admin dashboard.
+ *
+ * Access restricted to users with role "admin".
+ */
+require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/auth.php';
 
+// Enforce admin role
 requireRole('admin');
 ?>
 <!DOCTYPE html>
@@ -20,7 +21,10 @@ requireRole('admin');
 </head>
 <body>
     <h1>Admin Dashboard</h1>
+    
     <p>Du bist eingeloggt (admin).</p>
-    <p><a href="/ats_projekt/public/logout.php">Logout</a></p>
+    <p>
+        <a href="<?= BASE_PATH ?>/logout.php">Logout</a>
+    </p>
 </body>
 </html>

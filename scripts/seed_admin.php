@@ -1,12 +1,11 @@
 <?php
-/** 
- * scripts/seed_admin.php
- * Dient der idempotenten Initialisung eines Admin-Accounts für das System.
- */
 declare(strict_types=1);
 
-// Skript darf nur über CLI ausgeführt werden
-// Verhindert Web-Zugriff
+/**
+ * Seeds an initial admin account.
+ *
+ * CLI-only script. Safe to run multiple times (idempotent).
+ */
 if (PHP_SAPI !== 'cli') {
     exit("CLI only\n");
 }
@@ -17,12 +16,12 @@ require_once __DIR__ . '/../src/db.php';
 try {
     $pdo = getDatabaseConnection();
 
-    // Seed-Daten für initialen Administrator
+    // Default admin credentials (development setup)
     $adminEmail = 'admin@example.com';
     $adminPasswordPlain = 'admin123';
     $adminRole = 'admin';
 
-    // Idempotenz-Prüfung
+    // Check if admin already exists
     $stmt = $pdo->prepare(
         "SELECT user_id FROM users WHERE email = :email LIMIT 1"
     );
@@ -33,10 +32,10 @@ try {
         exit(0);
     }
 
-    // Passwort hashen
+    // Securely hash password before storing
     $hashedPassword = password_hash($adminPasswordPlain, PASSWORD_DEFAULT);
 
-    // Admin-Account anlegen mit Prepared Statement
+    // Insert admin user
     $insertStmt = $pdo->prepare("
         INSERT INTO users (email, password_hash, role)
         VALUES (:email, :password_hash, :role)

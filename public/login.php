@@ -1,20 +1,28 @@
 <?php
-/**
- * public/login.php 
- * HTTP-Entry-Point für die Authentifizierung von Recruitern und Administratoren.
- * Die Datei übernimmt die Verarbeitung eingehender POST-Requests und ruft
- * die Authentifizierungsfunktionen src/auth.php Moduls auf.
- */
 declare(strict_types=1);
 
+/**
+ * Login entry point for internal users (admin, recruiter).
+ */
 require_once __DIR__ . '/../src/config.php';
-// Einbindung des zentralen Authentifizierungsmoduls
 require_once __DIR__ . '/../src/auth.php';
 
-// Session initialisieren
+// Ensure session is active
 startSession();
 
-// Variable für Fehlermeldung
+// Redirect already authenticated users
+if (isAuthenticated()) {
+    $role = currentUserRole();
+
+    if ($role === 'admin') {
+        header('Location: ' . BASE_PATH . '/admin/dashboard.php');
+        exit;
+    }
+
+    header('Location: ' . BASE_PATH . '/recruiter/dashboard.php');
+    exit;
+}
+
 $error = null;
 
 
@@ -22,21 +30,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = (string)($_POST['email'] ?? '');
     $password = (string)($_POST['password'] ?? '');
 
-    // Rollenbasierte Weiterleitung
     if (login($email, $password)) {
 
         $role = currentUserRole();
 
+        // Role-based redirect after successful login
         if ($role === 'admin') {
-            header('Location: /ats_projekt/public/admin/dashboard.php');
+            header('Location: ' . BASE_PATH . '/admin/dashboard.php');
             exit;
         }
 
-        header('Location: /ats_projekt/public/recruiter/dashboard.php');
+        header('Location: ' . BASE_PATH . '/recruiter/dashboard.php');
         exit;
     }
 
-    // Generische Fehlermeldung zum Schutz vor Enumeration
+    // Generic error message to prevent user enumeration
     $error = 'Login fehlgeschlagen. Bitte E-Mail und Passwort prüfen.';
 }
 ?>
@@ -51,15 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1>Login</h1>
 
     <?php if ($error): ?>
-        <!-- 
-            Ausgabe der Fehlermeldung.
-            htmlspecialchars verhindert Cross-Site-Scripting (XSS),
-            falls manipulierte Eingaben zurückgegeben würden.
-        -->
+        <!-- Escape output to prevent XSS -->
         <p style="color: red;"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
     <?php endif; ?>
 
-    <!-- Login-Formular -->
     <form method="post" action="">
         <div>
             <label for="email">E-Mail</label><br>
@@ -92,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
     <div style="margin-top: 20px;">
-        <a href="<?= BASE_PATH ?>/index.php"><- Zur Karriereseite</a>
+        <a href="<?= BASE_PATH ?>/index.php">← Zur Karriereseite</a>
     </div>
 </body>
 </html>

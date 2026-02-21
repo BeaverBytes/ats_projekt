@@ -4,6 +4,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/jobs.php';
 
+/**
+ * Public job detail page.
+ * 
+ * Validates the job ID from user input and ensures
+ * that only active jobs are displayed.
+ */
+
+
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 if (!$id || $id < 1) {
     http_response_code(404);

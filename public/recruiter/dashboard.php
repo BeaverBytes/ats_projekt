@@ -1,15 +1,16 @@
 <?php
-/**
- * public/recruiter/dashboard.php
- *
- * Zugriff ausschließlich mit Rolle 'recruiter'.
- */
-
 declare(strict_types=1);
 
+/**
+ * Recruiter dashboard.
+ *
+ * Access restricted to users with role "recruiter".
+ */
+require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/auth.php';
 
-requireRole('recruiter');
+// Enforce role
+requireAnyRole(['admin', 'recruiter']);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -21,6 +22,6 @@ requireRole('recruiter');
 <body>
     <h1>Recruiter Dashboard</h1>
     <p>Du bist eingeloggt (recruiter).</p>
-    <p><a href="/ats_projekt/public/logout.php">Logout</a></p>
+    <p><a href="<?= BASE_PATH ?>/logout.php">Logout</a></p>
 </body>
 </html>

@@ -2,6 +2,13 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../src/config.php';
+
+/**
+ * Public landing page for external applicants.
+ * 
+ * This page serves as the main entry point for
+ * non-authenticated users.
+ */
 ?>
 
 <!DOCTYPE html>
@@ -15,11 +22,18 @@ require_once __DIR__ . '/../src/config.php';
         <main>
             <h1>Karriere</h1>
             <p>Willkommen auf unserer Karriereseite. Hier finden Sie alle aktuell ausgeschriebenen Stellen.</p>
-            <p><a href="<?= BASE_PATH ?>/jobs/index.php">Offene Stellen ansehen</a></p>
+            
+            <!-- Navigation to public job listing --> 
+            <p>
+                <a href="<?= BASE_PATH ?>/jobs/index.php">Offene Stellen ansehen</a>
+            </p>
 
             <hr>
 
-            <p><a href="<?= BASE_PATH ?>/login.php">Mitarbeiter-Login</a></p>
+            <!-- Link to internal authentication area -->
+            <p>
+                <a href="<?= BASE_PATH ?>/login.php">Mitarbeiter-Login</a>
+            </p>
         </main>
     </body>
 </html>

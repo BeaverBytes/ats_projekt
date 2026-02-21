@@ -4,6 +4,13 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/jobs.php';
 
+/**
+ * Public job listing page.
+ * 
+ * Retrieves only active jobs to ensure that 
+ * unpublished positions remain inaccessible.
+ */
+
 $jobs = listActiveJobs();
 ?>
 
@@ -18,14 +25,16 @@ $jobs = listActiveJobs();
         <main>
             <h1>Offene Stellen</h1>
 
-            <p><a href="<?= BASE_PATH ?>/index.php"><- Zur Karriereseite</a></p>
+            <p><a href="<?= BASE_PATH ?>/index.php">← Zur Karriereseite</a></p>
 
             <?php if (count($jobs) === 0): ?>
+                <!-- No active jobs available --> 
                 <p>Aktuell sind keine Stellen ausgeschrieben</p>
             <?php else: ?>
                 <ul>
                     <?php foreach ($jobs as $job): ?>
                         <li>
+                            <!-- Output is escaped to prevent XSS --> 
                             <a href="<?= BASE_PATH ?>/jobs/show.php?id=<?= (int)$job['job_id'] ?>">
                                 <?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?>
                             </a>

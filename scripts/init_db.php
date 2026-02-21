@@ -1,12 +1,11 @@
 <?php
-/** 
- * scripts/init_db.php 
-* Initialisiert die Datenbankstruktur anhand der schema.sql
-*/
 declare(strict_types=1);
 
-// Script darf nur über die Kommandozeile ausgeführt werden
-// Verhindert Web-Zugriff
+/**
+ * Initializes the database schema from schema.sql.
+ *
+ * CLI-only script to prevent accidental execution via web.
+ */
 if (PHP_SAPI !== 'cli') {
     exit("CLI only\n");
 }
@@ -15,23 +14,23 @@ if (PHP_SAPI !== 'cli') {
 require __DIR__ . '/../src/db.php';
 
 try {
-    // Konfigurierte PDO-Instanz (Singleton) abrufen
+    // Obtain configured PDO connection
     $pdo = getDatabaseConnection();
     
-    // Schema-Datei einlesen
+    // Load schema definition
     $schemaFile = __DIR__ . '/../data/schema.sql';
     $sql = file_get_contents($schemaFile);
     if ($sql === false) {
         throw new RuntimeException("Schema nicht lesbar: $schemaFile");
     }
 
-    // SQL-Statements ausführen
+    // Execute schema statements
     $pdo->exec($sql);
 
     echo "Datenbank initialisiert.\n";
 
 } catch (Throwable $e) {
-    // Fehlerausgabe im CLI-Kontext ausgeben und mit Exit-Code 1 beenden
+    // Output error in CLI context and exit with non-zero status
     echo "FEHLER: " . $e->getMessage() . "\n";
     exit(1);
 }

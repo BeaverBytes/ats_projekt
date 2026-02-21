@@ -1,9 +1,10 @@
 <?php
 /**
- * Base Path Configuration
+ * Application base path configuration.
  * 
- * Lokale XAMPP-URL:
- * http://localhost/ats_projekt/public/
+ * Defines the URL prefix under which the application
+ * is accessible. This allows flexible deployment
+ * without changing hardcoded links throughout the codebase.
  */
 
 define('BASE_PATH', '/ats_projekt/public');
