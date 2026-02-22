@@ -40,88 +40,93 @@ function h(string $value): string {
 <!DOCTYPE html>
 <html lang="de">
     <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Neue Stelle anlegen – ATS</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Neue Stelle anlegen – ATS</title>
 
-    <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
-</head>
+        <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
+    </head>
     <body>
-        <h1>Neue Stelle anlegen</h1>
+        <main class="container">
 
-        <!-- Success message after redirect --> 
-         <?php if (isset($_GET['success'])): ?>
-            <p style="color: green;">Stelle erfolgreich erstellt.</p>
-        <?php endif; ?>
+            <div class="card">
+                <h1 class="page-title">Neue Stelle anlegen</h1>
 
-        <!-- Display validation errors --> 
-        <?php if (!empty($errors)): ?>
-            <ul style="color: red;">
-                <?php foreach ($errors as $error): ?>
-                    <li><?= h($error) ?></li>
-                    <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
+                <!-- Success message -->
+                <?php if (isset($_GET['success'])): ?>
+                    <div class="alert alert-success">
+                        Stelle erfolgreich erstellt.
+                    </div>
+                <?php endif; ?>
 
-        <div class="form-actions">
-            <a href="<?= BASE_PATH ?>/jobs/index.php" class="btn btn-secondary">
-                ← Zurück zur Übersicht
-            </a>
-        </div>
+                <!-- Validation errors -->
+                <?php if (!empty($errors)): ?>
+                    <div class="alert alert-error">
+                        <ul>
+                            <?php foreach ($errors as $error): ?>
+                                <li><?= h($error) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
 
-        <form method="post">
+                <div class="form-actions">
+                    <a href="<?= BASE_PATH ?>/jobs/index.php" class="btn btn-secondary">
+                        ← Zurück zur Übersicht
+                    </a>
+                </div>
 
-        <!-- Job title --> 
-        <div>
-            <label for="title">Stellenbezeichnung*</label>
-            <input 
-                type="text"
-                id="title"
-                name="title"
-                value="<?= h($_POST['title'] ?? '') ?>"
-                required
-            >
-        </div>
+                <form method="post">
 
-        <!-- Job description -->
-        <div>
-            <label for="description">Beschreibung*</label>
-            <textarea 
-                id="description"
-                name="description"
-                rows="6"
-                required
-            ><?= h($_POST['description'] ?? '') ?></textarea>
-        </div>
+                    <div class="form-group">
+                        <label for="title">Stellenbezeichnung*</label>
+                        <input 
+                            type="text"
+                            id="title"
+                            name="title"
+                            value="<?= h($_POST['title'] ?? '') ?>"
+                            required
+                        >
+                    </div>
 
-        <!-- Optional job location -->
-        <div>
-            <label for="location">Standort</label>
-            <input 
-                type="text"
-                id="location"
-                name="location"
-                value="<?= h($_POST['location'] ?? '') ?>"
-            >
-        </div>
+                    <div class="form-group">
+                        <label for="description">Beschreibung*</label>
+                        <textarea 
+                            id="description"
+                            name="description"
+                            required
+                        ><?= h($_POST['description'] ?? '') ?></textarea>
+                    </div>
 
-       <!-- Publish toggle -->
-        <div>
-            <label>
-                <input 
-                    type="checkbox"
-                    name="is_active"
-                    value="1"
-                    <?= ($_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['is_active'])) ? 'checked' : '' ?>
-                >
-                Sofort veröffentlichen
-            </label>
-        </div>
+                    <div class="form-group">
+                        <label for="location">Standort</label>
+                        <input 
+                            type="text"
+                            id="location"
+                            name="location"
+                            value="<?= h($_POST['location'] ?? '') ?>"
+                        >
+                    </div>
 
-        <!-- Submit button -->
-        <div>
-            <button type="submit">Stelle speichern</button>
-        </div>
-        </form>
+                    <div class="form-group checkbox-row">
+                        <input 
+                            type="checkbox"
+                            id="is_active"
+                            name="is_active"
+                            value="1"
+                            <?= ($_SERVER['REQUEST_METHOD'] !== 'POST' || isset($_POST['is_active'])) ? 'checked' : '' ?>
+                        >
+                        <label for="is_active">Sofort veröffentlichen</label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            Stelle speichern
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </main>
     </body>
 </html>

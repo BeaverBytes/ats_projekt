@@ -14,17 +14,24 @@ requireRole('admin');
 ?>
 <!DOCTYPE html>
 <html lang="de">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard – ATS</title>
-</head>
-<body>
-    <h1>Admin Dashboard</h1>
-    
-    <p>Du bist eingeloggt (admin).</p>
-    <p>
-        <a href="<?= BASE_PATH ?>/logout.php">Logout</a>
-    </p>
-</body>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Admin Dashboard – ATS</title>
+
+        <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
+    </head>
+    <body>
+        <main class="container">
+            <div class="card">
+                <h1 class="page-title">Admin Dashboard</h1>
+
+                <p>Du bist eingeloggt (admin).</p>
+
+                <div class="form-actions">
+                    <a href="<?= BASE_PATH ?>/logout.php" class="btn btn-secondary">Logout</a>
+                </div>
+            </div>
+        </main>
+    </body>
 </html>

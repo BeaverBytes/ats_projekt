@@ -50,54 +50,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="de">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login – ATS</title>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Login – ATS</title>
 
-    <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
-</head>
-<body>
-    <h1>Login</h1>
+        <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
+    </head>
+    <body>
+        <main class="container">
+            <div class="card">
+                <h1 class="page-title">Login</h1>
 
-    <?php if ($error): ?>
-        <!-- Escape output to prevent XSS -->
-        <p style="color: red;"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
-    <?php endif; ?>
+                <?php if ($error): ?>
+                    <div class="alert alert-error">
+                        <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+                    </div>
+                <?php endif; ?>
 
-    <form method="post" action="">
-        <div>
-            <label for="email">E-Mail</label><br>
-            <input
-                type="email"
-                id="email"
-                name="email"
-                required
-                autocomplete="username"
-                value="<?php 
-                    // Wiederbefüllung des Email-Feldes bei Fehler zur erhöhung der Usability
-                    echo htmlspecialchars((string)($_POST['email'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
-            >
-        </div>
+                <form method="post" action="">
 
-        <div style="margin-top: 8px;">
-            <label for="password">Passwort</label><br>
-            <input
-                type="password"
-                id="password"
-                name="password"
-                required
-                autocomplete="current-password"
-            >
-        </div>
+                    <div class="form-group">
+                        <label for="email">E-Mail</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            autocomplete="username"
+                            value="<?= htmlspecialchars((string)($_POST['email'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                        >
+                    </div>
 
-        <div style="margin-top: 12px;">
-            <button type="submit">Anmelden</button>
-        </div>
-    </form>
+                    <div class="form-group">
+                        <label for="password">Passwort</label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
 
-    <div style="margin-top: 20px;">
-        <a href="<?= BASE_PATH ?>/index.php">← Zur Karriereseite</a>
-    </div>
-</body>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            Anmelden
+                        </button>
+                    </div>
+
+                </form>
+
+                <hr>
+
+                <div class="form-actions">
+                    <a href="<?= BASE_PATH ?>/index.php" class="btn btn-secondary">
+                        ← Zur Karriereseite
+                    </a>
+                </div>
+            </div>
+        </main>
+    </body>
 </html>

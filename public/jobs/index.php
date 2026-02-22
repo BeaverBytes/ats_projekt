@@ -24,29 +24,40 @@ $jobs = listActiveJobs();
          <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
     </head>
     <body>
-        <main>
-            <h1>Offene Stellen</h1>
+        <main class="container">
+            <div class="form-actions">
+                <a href="<?= BASE_PATH ?>/index.php" class="btn btn-secondary">← Zur Karriereseite</a>
+            </div>
 
-            <p><a href="<?= BASE_PATH ?>/index.php">← Zur Karriereseite</a></p>
+            <div class="card">
+                <h1 class="page-title">Offene Stellen</h1>
 
-            <?php if (count($jobs) === 0): ?>
-                <!-- No active jobs available --> 
-                <p>Aktuell sind keine Stellen ausgeschrieben</p>
-            <?php else: ?>
-                <ul>
+                <?php if (count($jobs) === 0): ?>
+                    <p>Aktuell sind keine Stellen ausgeschrieben.</p>
+                <?php else: ?>
                     <?php foreach ($jobs as $job): ?>
-                        <li>
-                            <!-- Output is escaped to prevent XSS --> 
-                            <a href="<?= BASE_PATH ?>/jobs/show.php?id=<?= (int)$job['job_id'] ?>">
-                                <?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?>
-                            </a>
+                        <div class="card">
+                            <h2 style="margin-top: 0;">
+                                <a href="<?= BASE_PATH ?>/jobs/show.php?id=<?= (int)$job['job_id'] ?>">
+                                    <?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?>
+                                </a>
+                            </h2>
+
                             <?php if (!empty($job['location'])): ?>
-                                - <?= htmlspecialchars((string)$job['location'], ENT_QUOTES, 'UTF-8') ?>
+                                <p class="muted" style="margin: 0;">
+                                    Ort: <?= htmlspecialchars((string)$job['location'], ENT_QUOTES, 'UTF-8') ?>
+                                </p>
                             <?php endif; ?>
-                        </li>
+
+                            <div class="form-actions">
+                                <a href="<?= BASE_PATH ?>/jobs/show.php?id=<?= (int)$job['job_id'] ?>" class="btn btn-primary">
+                                    Details ansehen
+                                </a>
+                            </div>
+                        </div>
                     <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </main>
     </body>
 </html>

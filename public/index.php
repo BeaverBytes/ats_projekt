@@ -21,21 +21,29 @@ require_once __DIR__ . '/../src/config.php';
         <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
     </head>
     <body>
-        <main>
-            <h1>Karriere</h1>
-            <p>Willkommen auf unserer Karriereseite. Hier finden Sie alle aktuell ausgeschriebenen Stellen.</p>
-            
-            <!-- Navigation to public job listing --> 
-            <p>
-                <a href="<?= BASE_PATH ?>/jobs/index.php">Offene Stellen ansehen</a>
-            </p>
+        <main class="container">
+            <div class="card">
+                <h1 class="page-title">Karriere</h1>
 
-            <hr>
+                <p>
+                    Willkommen auf unserer Karriereseite. 
+                    Hier finden Sie alle aktuell ausgeschriebenen Stellen.
+                </p>
 
-            <!-- Link to internal authentication area -->
-            <p>
-                <a href="<?= BASE_PATH ?>/login.php">Mitarbeiter-Login</a>
-            </p>
+                <div class="form-actions">
+                    <a href="<?= BASE_PATH ?>/jobs/index.php" class="btn btn-primary">
+                        Offene Stellen ansehen
+                    </a>
+                </div>
+
+                <hr>
+
+                <div class="form-actions">
+                    <a href="<?= BASE_PATH ?>/login.php" class="btn btn-secondary">
+                        Mitarbeiter-Login
+                    </a>
+                </div>
+            </div>
         </main>
     </body>
 </html>

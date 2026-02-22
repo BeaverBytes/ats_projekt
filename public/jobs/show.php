@@ -33,28 +33,34 @@ if ($job === null) {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title><?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?> - ATS</title>
 
-         <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
+        <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
     </head>
     <body>
-        <main>
-            <p><a href="<?= BASE_PATH ?>/jobs/index.php">Zur Stellenliste</a></p>
+        <main class="container">
+            <div class="form-actions">
+                <a href="<?= BASE_PATH ?>/jobs/index.php" class="btn btn-secondary">← Zur Stellenliste</a>
+            </div>
 
-            <h1><?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?></h1>
+            <div class="card">
+                <h1 class="page-title"><?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?></h1>
 
-            <?php if (!empty($job['location'])): ?>
-                <p><strong>Ort:</strong><?= htmlspecialchars((string)$job['location'], ENT_QUOTES, 'UTF-8') ?></p>
-            <?php endif ?>
+                <?php if (!empty($job['location'])): ?>
+                    <p><strong>Ort:</strong> <?= htmlspecialchars((string)$job['location'], ENT_QUOTES, 'UTF-8') ?></p>
+                <?php endif ?>
 
-            <hr>
+                <hr>
 
-            <h2>Beschreibung</h2>
-            <p style="white-space: pre-wrap;"><?= htmlspecialchars((string)$job['description'], ENT_QUOTES, 'UTF-8') ?></p>
+                <h2>Beschreibung</h2>
+                <p class="job-description"><?= htmlspecialchars((string)$job['description'], ENT_QUOTES, 'UTF-8') ?></p>
 
-            <hr>
+                <hr>
 
-            <p>
-                <a href="<?= BASE_PATH ?>/apply.php?job_id=<?= (int)$job['job_id'] ?>">Jetzt bewerben</a>
-            </p>
+                <div class="form-actions">
+                    <a href="<?= BASE_PATH ?>/apply.php?job_id=<?= (int)$job['job_id'] ?>" class="btn btn-primary">
+                        Jetzt bewerben
+                    </a>
+                </div>
+            </div>
         </main>
     </body>
 </html>
