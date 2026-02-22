@@ -179,3 +179,17 @@ function setJobActive(int $jobId, int $isActive): void
         ':id' => $jobId,
     ]);
 }
+
+/**
+ * Lists all jobs (admin view), including inactive jobs.
+ */
+function listAllJobs(): array
+{
+    $pdo = getDatabaseConnection();
+    $stmt = $pdo->query(
+        "SELECT job_id, title, description, location, is_active, created_by_user_id, created_at
+        FROM jobs
+        ORDER BY created_at DESC"
+    );
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
