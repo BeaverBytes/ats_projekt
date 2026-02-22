@@ -40,9 +40,12 @@ function h(string $value): string {
 <!DOCTYPE html>
 <html lang="de">
     <head>
-        <meta charset="utf-8">
-        <title>Neue Stelle anlegen</title>
-    </head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Neue Stelle anlegen – ATS</title>
+
+    <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
+</head>
     <body>
         <h1>Neue Stelle anlegen</h1>
 
@@ -59,6 +62,12 @@ function h(string $value): string {
                     <?php endforeach; ?>
             </ul>
         <?php endif; ?>
+
+        <div class="form-actions">
+            <a href="<?= BASE_PATH ?>/jobs/index.php" class="btn btn-secondary">
+                ← Zurück zur Übersicht
+            </a>
+        </div>
 
         <form method="post">
 

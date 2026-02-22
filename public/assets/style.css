@@ -1,0 +1,334 @@
+/* ========================================
+   Root Variables (Simple Theming)
+   Central color definitions for consistency
+======================================== */
+
+:root{
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --focus: #2563eb;
+
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+  --success-text: #065f46;
+
+  --error-bg: #fef2f2;
+  --error-border: #fecaca;
+  --error-text: #991b1b;
+
+  --warning-bg: #fffbeb;
+  --warning-border: #fde68a;
+  --warning-text: #92400e;
+}
+
+
+/* ========================================
+   Base Reset & Global Layout
+======================================== */
+
+*{
+  box-sizing: border-box;
+}
+
+html, body{
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+a{
+  color: var(--focus);
+  text-decoration: none;
+}
+
+a:hover{
+  text-decoration: underline;
+}
+
+
+/* ========================================
+   Page Structure
+   Simple centered layout container
+======================================== */
+
+.container{
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.page-title{
+  margin: 0 0 16px 0;
+  font-size: 22px;
+}
+
+.muted{
+  color: var(--muted);
+}
+
+
+/* ========================================
+   Card Component
+   Generic content wrapper
+======================================== */
+
+.card{
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.card + .card{
+  margin-top: 12px;
+}
+
+
+/* ========================================
+   Badge Component
+   Small status indicators
+======================================== */
+
+.badge{
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: #f9fafb;
+  color: var(--muted);
+}
+
+.badge-success{
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success-text);
+}
+
+.badge-error{
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+
+
+/* ========================================
+   Alert Component
+   User feedback messages
+======================================== */
+
+.alert{
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  margin: 12px 0;
+}
+
+.alert-success{
+  background: var(--success-bg);
+  border-color: var(--success-border);
+  color: var(--success-text);
+}
+
+.alert-error{
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+
+.alert-warning{
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--warning-text);
+}
+
+
+/* ========================================
+   Form Elements
+   Consistent form spacing and inputs
+======================================== */
+
+.form-group{
+  margin-bottom: 12px;
+}
+
+label{
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select{
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+textarea{
+  min-height: 140px;
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.help-text{
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.checkbox-row{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.checkbox-row label{
+  margin: 0;
+  font-weight: 400;
+}
+
+.form-actions{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+
+/* ========================================
+   Button Component
+   Reusable primary / secondary buttons
+======================================== */
+
+.btn{
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #f9fafb;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+  text-align: center;
+}
+
+.btn:hover{
+  filter: brightness(0.98);
+}
+
+.btn:active{
+  transform: translateY(1px);
+}
+
+.btn-primary{
+  background: var(--focus);
+  border-color: var(--focus);
+  color: #ffffff;
+}
+
+.btn-secondary{
+  background: #ffffff;
+}
+
+
+/* ========================================
+   Table Component
+   Simple admin / overview tables
+======================================== */
+
+.table{
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table th,
+.table td{
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th{
+  background: #f9fafb;
+  font-weight: 700;
+}
+
+.table tr:last-child td{
+  border-bottom: none;
+}
+
+
+/* ========================================
+   Navigation Bar
+   Simple horizontal navigation
+======================================== */
+
+.nav{
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav .container{
+  padding-top: 12px;
+  padding-bottom: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-links{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.nav a{
+  color: var(--text);
+  font-weight: 700;
+}
+
+.nav a:hover{
+  text-decoration: none;
+  color: var(--focus);
+}
+
+
+/* ========================================
+   Footer
+======================================== */
+
+.footer{
+  margin-top: 24px;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
