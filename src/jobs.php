@@ -15,8 +15,7 @@ const JOB_LOCATION_MAX_LENGTH = 150;
  * 
  * Results are ordered by creation date.
  */
-function listActiveJobs(): array
-{
+function listActiveJobs(): array {
     $pdo = getDatabaseConnection();
 
     $stmt = $pdo->prepare(
@@ -35,8 +34,7 @@ function listActiveJobs(): array
  * 
  * the additional is_active ckeck prevents direct access to unpublished jobs
  */
-function findActiveJobById(int $jobId): ?array
-{
+function findActiveJobById(int $jobId): ?array {
     $pdo = getDatabaseConnection();
 
     $stmt = $pdo->prepare(
@@ -55,8 +53,7 @@ function findActiveJobById(int $jobId): ?array
  * 
  * Returns a list of error messages. An empty array means valid input.
  */
-function validateJobInput(array $data): array
-{
+function validateJobInput(array $data): array {
     $errors = [];
 
     $title = trim((string)($data['title'] ?? ''));
@@ -91,8 +88,7 @@ function validateJobInput(array $data): array
  * 
  * Returns the newly created job_id. 
  */
-function createJob(int $createdByUserId, array $data): int
-{
+function createJob(int $createdByUserId, array $data): int {
     $pdo = getDatabaseConnection();
 
     $title = trim((string)($data['title'] ?? ''));
@@ -123,8 +119,7 @@ function createJob(int $createdByUserId, array $data): int
  * 
  * Includes both active and inactive jobs for management purpose.
  */
-function listJobsByCreator(int $userId): array
-{
+function listJobsByCreator(int $userId): array {
     $pdo = getDatabaseConnection();
 
     $stmt = $pdo->prepare(
@@ -141,8 +136,7 @@ function listJobsByCreator(int $userId): array
 /**
  * Retrieve a job by ID without restricting is_active. 
  */
-function findJobById(int $jobId): ?array
-{
+function findJobById(int $jobId): ?array {
     $pdo =getDatabaseConnection();
 
     $stmt = $pdo->prepare(
@@ -162,8 +156,7 @@ function findJobById(int $jobId): ?array
  * Security note: authorization (owner/admin) must be enforced by the caller
  * before calling this function.
  */
-function setJobActive(int $jobId, int $isActive): void
-{
+function setJobActive(int $jobId, int $isActive): void {
     $pdo = getDatabaseConnection();
 
     $isActive = ($isActive === 1) ? 1 : 0;
@@ -183,8 +176,7 @@ function setJobActive(int $jobId, int $isActive): void
 /**
  * Lists all jobs (admin view), including inactive jobs.
  */
-function listAllJobs(): array
-{
+function listAllJobs(): array {
     $pdo = getDatabaseConnection();
     $stmt = $pdo->query(
         "SELECT job_id, title, description, location, is_active, created_by_user_id, created_at

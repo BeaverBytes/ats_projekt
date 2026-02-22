@@ -11,8 +11,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
 // Ensure session is active
- function startSession(): void
-{
+ function startSession(): void {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
@@ -22,8 +21,7 @@ require_once __DIR__ . '/db.php';
  * Authenticate user by email and password.
  * Stores user_id and role in session on success.
  */
-function login(string $email, string $password): bool
-{
+function login(string $email, string $password): bool {
     startSession();
 
     $email = trim($email);
@@ -59,8 +57,7 @@ function login(string $email, string $password): bool
 }
 
 // Destroy session and remove authentication data
-function logout(): void
-{
+function logout(): void {
     startSession();
 
     $_SESSION = [];
@@ -82,29 +79,25 @@ function logout(): void
 }
 
 // Check if user is authenticated
-function isAuthenticated(): bool
-{
+function isAuthenticated(): bool {
     startSession();
     return isset($_SESSION['user_id']);
 }
 
 // Get current user ID
-function currentUserId(): ?int
-{
+function currentUserId(): ?int {
     startSession();
     return isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 }
 
 // Get current user role
-function currentUserRole(): ?string
-{
+function currentUserRole(): ?string {
     startSession();
     return isset($_SESSION['role']) ? (string)$_SESSION['role'] : null;
 }
 
 // Require login, otherwise redirect
-function requireAuth(string $loginPath = BASE_PATH . '/login.php'): void
-{
+function requireAuth(string $loginPath = BASE_PATH . '/login.php'): void {
     if (!isAuthenticated()) {
         header('Location: ' . $loginPath);
         exit;
@@ -112,8 +105,7 @@ function requireAuth(string $loginPath = BASE_PATH . '/login.php'): void
 }
 
 // Require specific role, otherwise 403
-function requireRole(string $role, string $loginPath = BASE_PATH . '/login.php'): void
-{
+function requireRole(string $role, string $loginPath = BASE_PATH . '/login.php'): void {
     requireAuth($loginPath);
 
     if (currentUserRole() !== $role) {
@@ -122,8 +114,7 @@ function requireRole(string $role, string $loginPath = BASE_PATH . '/login.php')
     }
 }
 // Require one of multiple roles
-function requireAnyRole(array $roles, string $loginPath = BASE_PATH . '/login.php'): void
-{
+function requireAnyRole(array $roles, string $loginPath = BASE_PATH . '/login.php'): void {
     requireAuth($loginPath);
 
     if (!in_array(currentUserRole(), $roles, true)) {
