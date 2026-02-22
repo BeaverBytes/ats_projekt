@@ -44,7 +44,7 @@ function findActiveJobById(int $jobId): ?array
         FROM jobs
         WHERE job_id = :id AND is_active = 1"
     );
-    $stmt->execute([':id => $jobId']);
+    $stmt->execute([':id' => $jobId]);
 
     $job = $stmt->fetch(PDO::FETCH_ASSOC);
     return $job !== false ? $job : null;
@@ -64,7 +64,7 @@ function validateJobInput(array $data): array
     $location = trim((string)($data['location'] ?? ''));
 
     // title: VARCHAR(255) NOT NULL
-    if ($title === || mb_strlen($title) < 3) {
+    if ($title === '' || mb_strlen($title) < 3) {
         $errors[] = 'Die Stellenbezeichnung ist erforderlich (mind. 3 Zeichen).';
     } elseif (mb_strlen($title) > JOB_TITLE_MAX_LENGTH) {
         $errors[] = 'Die Stellenbezeichnung darf maximal ' . JOB_TITLE_MAX_LENGTH . ' Zeichen lang sein.';
@@ -96,11 +96,11 @@ function createJob(int $createdByUserId, array $data): int
     $pdo = getDatabaseConnection();
 
     $title = trim((string)($data['title'] ?? ''));
-    $description = trim((string)($date['description'] ?? ''));
-    $location = trim((string)($date['location'] ?? ''));
+    $description = trim((string)($data['description'] ?? ''));
+    $location = trim((string)($data['location'] ?? ''));
 
-    $isActive = isset($data['is_active']) ? (int)$data['is_active'] : 1;
-    $isActive = ($isActive === 1) ? 1 : 0;
+    // Normalize checkbox input checked => 1, unchecked/missing => 0
+    $isActive = isset($data['is_active']) ? 1 : 0;
 
     $stmt = $pdo->prepare(
          "INSERT INTO jobs (title, description, location, is_active, created_by_user_id, created_at)
