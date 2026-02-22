@@ -71,7 +71,7 @@ function h(string $value): string {
                 <?php endif; ?>
 
                 <div class="form-actions">
-                    <a href="<?= BASE_PATH ?>/jobs/index.php" class="btn btn-secondary">
+                    <a href="<?= BASE_PATH ?>/recruiter/jobs/index.php" class="btn btn-secondary">
                         ← Zurück zur Übersicht
                     </a>
                 </div>
