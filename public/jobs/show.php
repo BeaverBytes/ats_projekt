@@ -40,7 +40,7 @@ if ($job === null) {
             <h1><?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?></h1>
 
             <?php if (!empty($job['location'])): ?>
-                <p><strong>Ort:</strong><?= htmlspecialchars((string)$jobs['location'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p><strong>Ort:</strong><?= htmlspecialchars((string)$job['location'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php endif ?>
 
             <hr>
