@@ -8,39 +8,35 @@ const JOB_LOCATION_MAX_LENGTH = 150;
 
 /**
  * Retrieve all publicly visible job postings.
- * 
+ *
  * Only jobs marked as active are returned to ensure that
- * unpublished or deactivated positions cannot be accessed 
+ * unpublished or deactivated positions cannot be accessed
  * via the public listing.
- * 
+ *
  * Results are ordered by creation date.
  */
-function listActiveJobs(): array {
-    $pdo = getDatabaseConnection();
-
+function listActiveJobs(PDO $pdo): array {
     $stmt = $pdo->prepare(
         "SELECT job_id, title, location, created_at
-        FROM jobs
-        WHERE is_active = 1
-        ORDER BY created_at DESC"
+         FROM jobs
+         WHERE is_active = 1
+         ORDER BY created_at DESC"
     );
     $stmt->execute();
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
 /**
  * Retrieve a single active job posting by its identifier.
- * 
- * the additional is_active ckeck prevents direct access to unpublished jobs
+ *
+ * The additional is_active check prevents direct access to unpublished jobs.
  */
-function findActiveJobById(int $jobId): ?array {
-    $pdo = getDatabaseConnection();
-
+function findActiveJobById(PDO $pdo, int $jobId): ?array {
     $stmt = $pdo->prepare(
         "SELECT job_id, title, description, location, created_at
-        FROM jobs
-        WHERE job_id = :id AND is_active = 1"
+         FROM jobs
+         WHERE job_id = :id AND is_active = 1"
     );
     $stmt->execute([':id' => $jobId]);
 
@@ -50,7 +46,7 @@ function findActiveJobById(int $jobId): ?array {
 
 /**
  * Validate job input data for create/update operations.
- * 
+ *
  * Returns a list of error messages. An empty array means valid input.
  */
 function validateJobInput(array $data): array {
@@ -82,15 +78,13 @@ function validateJobInput(array $data): array {
 
 /**
  * Create a new job posting.
- * 
+ *
  * created_by_user_id is mandatory to ensure ownership and auditing.
  * is_active defaults to 1 (published) unless explicitly set to 0.
- * 
- * Returns the newly created job_id. 
+ *
+ * Returns the newly created job_id.
  */
-function createJob(int $createdByUserId, array $data): int {
-    $pdo = getDatabaseConnection();
-
+function createJob(PDO $pdo, int $createdByUserId, array $data): int {
     $title = trim((string)($data['title'] ?? ''));
     $description = trim((string)($data['description'] ?? ''));
     $location = trim((string)($data['location'] ?? ''));
@@ -99,7 +93,7 @@ function createJob(int $createdByUserId, array $data): int {
     $isActive = isset($data['is_active']) ? 1 : 0;
 
     $stmt = $pdo->prepare(
-         "INSERT INTO jobs (title, description, location, is_active, created_by_user_id, created_at)
+        "INSERT INTO jobs (title, description, location, is_active, created_by_user_id, created_at)
          VALUES (:title, :description, :location, :is_active, :created_by_user_id, datetime('now'))"
     );
 
@@ -116,33 +110,29 @@ function createJob(int $createdByUserId, array $data): int {
 
 /**
  * Retrieve jobs created by a specific user.
- * 
+ *
  * Includes both active and inactive jobs for management purpose.
  */
-function listJobsByCreator(int $userId): array {
-    $pdo = getDatabaseConnection();
-
+function listJobsByCreator(PDO $pdo, int $userId): array {
     $stmt = $pdo->prepare(
         "SELECT job_id, title, location, is_active, created_at
-        FROM jobs
-        WHERE created_by_user_id = :uid
-        ORDER BY created_at DESC"
+         FROM jobs
+         WHERE created_by_user_id = :uid
+         ORDER BY created_at DESC"
     );
     $stmt->execute([':uid' => $userId]);
 
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
 /**
- * Retrieve a job by ID without restricting is_active. 
+ * Retrieve a job by ID without restricting is_active.
  */
-function findJobById(int $jobId): ?array {
-    $pdo =getDatabaseConnection();
-
+function findJobById(PDO $pdo, int $jobId): ?array {
     $stmt = $pdo->prepare(
         "SELECT job_id, title, description, location, is_active, created_by_user_id, created_at
-        FROM jobs
-        WHERE job_id = :id"
+         FROM jobs
+         WHERE job_id = :id"
     );
     $stmt->execute([':id' => $jobId]);
 
@@ -152,19 +142,17 @@ function findJobById(int $jobId): ?array {
 
 /**
  * Change job visibility (active/inactive).
- * 
+ *
  * Security note: authorization (owner/admin) must be enforced by the caller
  * before calling this function.
  */
-function setJobActive(int $jobId, int $isActive): void {
-    $pdo = getDatabaseConnection();
-
+function setJobActive(PDO $pdo, int $jobId, int $isActive): void {
     $isActive = ($isActive === 1) ? 1 : 0;
 
     $stmt = $pdo->prepare(
         "UPDATE jobs
-        SET is_active = :active
-        WHERE job_id = :id"
+         SET is_active = :active
+         WHERE job_id = :id"
     );
 
     $stmt->execute([
@@ -176,12 +164,12 @@ function setJobActive(int $jobId, int $isActive): void {
 /**
  * Lists all jobs (admin view), including inactive jobs.
  */
-function listAllJobs(): array {
-    $pdo = getDatabaseConnection();
+function listAllJobs(PDO $pdo): array {
     $stmt = $pdo->query(
         "SELECT job_id, title, description, location, is_active, created_by_user_id, created_at
-        FROM jobs
-        ORDER BY created_at DESC"
+         FROM jobs
+         ORDER BY created_at DESC"
     );
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }

@@ -3,15 +3,18 @@ declare(strict_types=1);
 
 /**
  * Recruiter job creation page.
- * Renders form and handles job persistance
+ * Renders form and handles job persistence.
  */
 
 require_once __DIR__ . '/../../../src/config.php';
+require_once __DIR__ . '/../../../src/db.php';
 require_once __DIR__ . '/../../../src/auth.php';
 require_once __DIR__ . '/../../../src/jobs.php';
 
 // Restrict access to admin and recruiter roles
 requireAnyRole(['admin', 'recruiter']);
+
+$pdo = getDatabaseConnection();
 
 $errors = [];
 
@@ -23,7 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // If validation passes, create job entry
     if (empty($errors)) {
-        createJob(currentUserId(), $_POST);
+        $userId = currentUserId();
+        if ($userId === null) {
+            http_response_code(403);
+            exit('Access denied');
+        }
+
+        createJob($pdo, (int)$userId, $_POST);
 
         // Redirect to avoid form resubmission (PRG pattern)
         header('Location: ' . BASE_PATH . '/recruiter/jobs/new.php?success=1');
@@ -64,7 +73,7 @@ function h(string $value): string {
                     <div class="alert alert-error">
                         <ul>
                             <?php foreach ($errors as $error): ?>
-                                <li><?= h($error) ?></li>
+                                <li><?= h((string)$error) ?></li>
                             <?php endforeach; ?>
                         </ul>
                     </div>
@@ -80,36 +89,36 @@ function h(string $value): string {
 
                     <div class="form-group">
                         <label for="title">Stellenbezeichnung*</label>
-                        <input 
+                        <input
                             type="text"
                             id="title"
                             name="title"
-                            value="<?= h($_POST['title'] ?? '') ?>"
+                            value="<?= h((string)($_POST['title'] ?? '')) ?>"
                             required
                         >
                     </div>
 
                     <div class="form-group">
                         <label for="description">Beschreibung*</label>
-                        <textarea 
+                        <textarea
                             id="description"
                             name="description"
                             required
-                        ><?= h($_POST['description'] ?? '') ?></textarea>
+                        ><?= h((string)($_POST['description'] ?? '')) ?></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="location">Standort</label>
-                        <input 
+                        <input
                             type="text"
                             id="location"
                             name="location"
-                            value="<?= h($_POST['location'] ?? '') ?>"
+                            value="<?= h((string)($_POST['location'] ?? '')) ?>"
                         >
                     </div>
 
                     <div class="form-group checkbox-row">
-                        <input 
+                        <input
                             type="checkbox"
                             id="is_active"
                             name="is_active"

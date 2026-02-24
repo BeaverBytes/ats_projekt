@@ -11,7 +11,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
 // Ensure session is active
- function startSession(): void {
+function startSession(): void {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
     }
@@ -38,20 +38,20 @@ function login(string $email, string $password): bool {
          WHERE email = :email
          LIMIT 1'
     );
-    $stmt->execute(['email' => $email]);
+    $stmt->execute([':email' => $email]);
 
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Verify password hash
-    if (!$user || !password_verify($password, $user['password_hash'])) {
+    if (!$user || !password_verify($password, (string)$user['password_hash'])) {
         return false;
     }
 
     // Prevent session fixation
     session_regenerate_id(true);
 
-    $_SESSION['user_id'] = (int) $user['user_id'];
-    $_SESSION['role'] = (string) $user['role'];
+    $_SESSION['user_id'] = (int)$user['user_id'];
+    $_SESSION['role'] = (string)$user['role'];
 
     return true;
 }
@@ -70,8 +70,8 @@ function logout(): void {
             time() - 42000,
             $params['path'],
             $params['domain'],
-            $params['secure'],
-            $params['httponly']
+            (bool)$params['secure'],
+            (bool)$params['httponly']
         );
     }
 
@@ -113,6 +113,7 @@ function requireRole(string $role, string $loginPath = BASE_PATH . '/login.php')
         exit('Access denied');
     }
 }
+
 // Require one of multiple roles
 function requireAnyRole(array $roles, string $loginPath = BASE_PATH . '/login.php'): void {
     requireAuth($loginPath);

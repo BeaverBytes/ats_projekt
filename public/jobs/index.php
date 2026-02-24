@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../src/config.php';
+require_once __DIR__ . '/../../src/db.php';
 require_once __DIR__ . '/../../src/jobs.php';
 
 /**
@@ -11,7 +12,8 @@ require_once __DIR__ . '/../../src/jobs.php';
  * unpublished positions remain inaccessible.
  */
 
-$jobs = listActiveJobs();
+$pdo = getDatabaseConnection();
+$jobs = listActiveJobs($pdo);
 ?>
 
 <!DOCTYPE html>

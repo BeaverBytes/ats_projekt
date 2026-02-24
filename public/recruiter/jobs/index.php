@@ -3,20 +3,24 @@ declare(strict_types=1);
 
 /**
  * Recruiter job overview.
- * 
+ *
  * Lists jobs created by the current user (including inactive jobs).
  */
 
 require_once __DIR__ . '/../../../src/config.php';
+require_once __DIR__ . '/../../../src/db.php';
 require_once __DIR__ . '/../../../src/auth.php';
 require_once __DIR__ . '/../../../src/jobs.php';
 
 requireAnyRole(['admin', 'recruiter']);
 
+$pdo = getDatabaseConnection();
+
 $userId = currentUserId();
 $role = currentUserRole();
 
-function h(string $value): string {
+function h(string $value): string
+{
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
@@ -25,17 +29,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jobId = filter_input(INPUT_POST, 'job_id', FILTER_VALIDATE_INT);
     $newState = filter_input(INPUT_POST, 'new_state', FILTER_VALIDATE_INT); // expected 0 or 1
 
-    if (!is_int($jobId) || $jobId < 1) {
+    if ($jobId === false || $jobId === null || $jobId < 1) {
         header('Location: ' . BASE_PATH . '/recruiter/jobs/index.php?error=invalid_job');
         exit;
     }
 
-    if (!in_array($newState, [0, 1], true)) {
+    if ($newState === false || $newState === null || !in_array($newState, [0, 1], true)) {
         header('Location: ' . BASE_PATH . '/recruiter/jobs/index.php?error=invalid_state');
         exit;
     }
 
-    $job = findJobById($jobId);
+    $job = findJobById($pdo, (int)$jobId);
     if ($job === null) {
         header('Location: ' . BASE_PATH . '/recruiter/jobs/index.php?error=not_found');
         exit;
@@ -43,12 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Authorization (server-side):
     // Admins may update any job; recruiters only jobs they created.
-    if ($role !== 'admin' && (int)$job['created_by_user_id'] !== $userId) {
+    if ($role !== 'admin' && (int)$job['created_by_user_id'] !== (int)$userId) {
         header('Location: ' . BASE_PATH . '/recruiter/jobs/index.php?error=forbidden');
         exit;
     }
 
-    setJobActive($jobId, $newState);
+    setJobActive($pdo, (int)$jobId, (int)$newState);
 
     header('Location: ' . BASE_PATH . '/recruiter/jobs/index.php?success=updated');
     exit;
@@ -59,7 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
  * Admin -> all jobs
  * Recruiter -> only own jobs
  */
-$jobs = ($role === 'admin') ? listAllJobs() : listJobsByCreator($userId);
+$jobs = ($role === 'admin')
+    ? listAllJobs($pdo)
+    : listJobsByCreator($pdo, (int)$userId);
 
 $flashSuccess = $_GET['success'] ?? '';
 $flashError   = $_GET['error'] ?? '';
@@ -77,7 +83,7 @@ $flashError   = $_GET['error'] ?? '';
             <div class="card">
                 <h1 class="page-title">Ausgeschriebene Stellen</h1>
 
-                <div class="=form-actions">
+                <div class="form-actions">
                     <a href="<?= BASE_PATH ?>/recruiter/dashboard.php" class="btn btn-secondary">← Dashboard</a>
                     <a href="<?= BASE_PATH ?>/recruiter/jobs/new.php" class="btn btn-primary">+ Neue Stelle</a>
                     <a href="<?= BASE_PATH ?>/logout.php" class="btn btn-secondary">Logout</a>
@@ -90,7 +96,7 @@ $flashError   = $_GET['error'] ?? '';
                 <?php if ($flashError !== ''): ?>
                     <div class="alert alert-error">
                         <?php if ($flashError === 'invalid_job'): ?>
-                            Ungültige Stellen-ID. 
+                            Ungültige Stellen-ID.
                         <?php elseif ($flashError === 'invalid_state'): ?>
                             Ungültiger Status.
                         <?php elseif ($flashError === 'not_found'): ?>
@@ -120,16 +126,20 @@ $flashError   = $_GET['error'] ?? '';
                         </thead>
                         <tbody>
                             <?php foreach ($jobs as $job): ?>
-                                <?php 
-                                    $isActive = (int)$job['is_active'] ===1;
+                                <?php
+                                    $isActive = (int)$job['is_active'] === 1;
                                     $badgeClass = $isActive ? 'badge badge-success' : 'badge badge-error';
                                     $badgeText = $isActive ? 'Aktiv' : 'Inaktiv';
                                     $toggleTo = $isActive ? 0 : 1;
                                     $toggleText = $isActive ? 'Deaktivieren' : 'Veröffentlichen';
-                                 ?>
-                                 <tr>
-                                    <td><a href="<?= BASE_PATH ?>/jobs/show.php?id=<?= (int)$job['job_id'] ?>"><?= h((string)$job['title']) ?></a></td>
-                                    <td><?= h((string)($job['location'] ?? ''))?></td>
+                                ?>
+                                <tr>
+                                    <td>
+                                        <a href="<?= BASE_PATH ?>/jobs/show.php?id=<?= (int)$job['job_id'] ?>">
+                                            <?= h((string)$job['title']) ?>
+                                        </a>
+                                    </td>
+                                    <td><?= h((string)($job['location'] ?? '')) ?></td>
 
                                     <?php if ($role === 'admin'): ?>
                                         <td><?= (int)$job['created_by_user_id'] ?></td>
@@ -148,7 +158,7 @@ $flashError   = $_GET['error'] ?? '';
                                             </button>
                                         </form>
                                     </td>
-                                 </tr>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
@@ -156,3 +166,4 @@ $flashError   = $_GET['error'] ?? '';
             </div>
         </main>
     </body>
+</html>
