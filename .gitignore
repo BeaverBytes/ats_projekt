@@ -1,3 +1,4 @@
 /data/ats.sqlite 
 /uploads/* 
 !/uploads/.gitkeep 
+struktur.txt

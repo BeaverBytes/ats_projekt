@@ -144,8 +144,6 @@ if ($role === 'admin') {
 
                 <hr>
 
-                <p class="muted">Schnellzugriff</p>
-
                 <div class="form-actions">
                     <a href="<?= h(BASE_PATH) ?>/recruiter/jobs/index.php" class="btn btn-primary">Stellen verwalten</a>
                     <a href="<?= h(BASE_PATH) ?>/recruiter/applications/index.php" class="btn btn-primary">Bewerbungen ansehen</a>
