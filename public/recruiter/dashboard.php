@@ -107,6 +107,9 @@ if ($role === 'admin') {
 
             <div class="form-actions">
                 <a href="<?= h(BASE_PATH) ?>/" class="btn btn-secondary">← Karriere</a>
+                <?php if ($role === 'admin'): ?>
+                        <a href="<?= h(BASE_PATH) ?>/admin/dashboard.php" class="btn btn-secondary">Admin Dashboard</a>
+                <?php endif; ?>
                 <a href="<?= h(BASE_PATH) ?>/logout.php" class="btn btn-secondary">Logout</a>
             </div>
 
@@ -147,22 +150,7 @@ if ($role === 'admin') {
                     <a href="<?= h(BASE_PATH) ?>/recruiter/jobs/index.php" class="btn btn-primary">Stellen verwalten</a>
                     <a href="<?= h(BASE_PATH) ?>/recruiter/applications/index.php" class="btn btn-primary">Bewerbungen ansehen</a>
                 </div>
-
-                <hr>
-
-                <div class="form-actions">
-                    <a href="<?= h(BASE_PATH) ?>/recruiter/jobs/new.php" class="btn btn-secondary">Neue Stelle anlegen</a>
-                    <a href="<?= h(BASE_PATH) ?>/jobs/index.php" class="btn btn-secondary">Stellenliste (öffentlich)</a>
-                </div>
-
-                <?php if ($role === 'admin'): ?>
-                    <hr>
-                    <div class="form-actions">
-                        <a href="<?= h(BASE_PATH) ?>/admin/dashboard.php" class="btn btn-secondary">Admin Dashboard</a>
-                    </div>
-                <?php endif; ?>
             </div>
-
         </main>
     </body>
 </html>

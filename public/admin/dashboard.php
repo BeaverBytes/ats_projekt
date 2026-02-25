@@ -97,15 +97,8 @@ $recruiters = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'recruit
                 <p class="muted">Navigation</p>
 
                 <div class="form-actions">
-                    <a href="<?= h(BASE_PATH) ?>/recruiter/applications/index.php" class="btn btn-primary">Alle Bewerbungen</a>
                     <a href="<?= h(BASE_PATH) ?>/recruiter/jobs/index.php" class="btn btn-primary">Alle Stellen</a>
-                </div>
-
-                <hr>
-
-                <div class="form-actions">
-                    <a href="<?= h(BASE_PATH) ?>/recruiter/jobs/new.php" class="btn btn-secondary">Neue Stelle anlegen</a>
-                    <a href="<?= h(BASE_PATH) ?>/jobs/index.php" class="btn btn-secondary">Stellenliste (öffentlich)</a>
+                    <a href="<?= h(BASE_PATH) ?>/recruiter/applications/index.php" class="btn btn-primary">Alle Bewerbungen</a>
                 </div>
             </div>
 
