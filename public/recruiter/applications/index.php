@@ -23,6 +23,15 @@ requireAnyRole(['admin', 'recruiter']);
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+// Status mapping: DB value => German label
+$statusLabels = [
+    'submitted'  => 'Eingegangen',
+    'in_review'  => 'In Prüfung',
+    'interview'  => 'Interview',
+    'offer'      => 'Angebot',
+    'rejected'   => 'Abgelehnt',
+];
+
 $userId = currentUserId();
 $role = currentUserRole();
 
@@ -122,7 +131,11 @@ $success = isset($_GET['success']) ? (string)$_GET['success'] : '';
                                             <div class="muted"><?= h((string)$a['job_location']) ?></div>
                                         <?php endif; ?>
                                     </td>
-                                    <td><span class="badge"><?= h((string)($a['status'] ?? 'submitted')) ?></span></td>
+                                    <td>
+                                        <span class="badge">
+                                            <?= h($statusLabels[(string)($a['status'] ?? 'submitted')] ?? (string)($a['status'] ?? 'submitted')) ?>
+                                        </span>
+                                    </td>
                                     <td><?= h((string)($a['created_at'] ?? '')) ?></td>
                                     <td>
                                         <a class="btn btn-primary"

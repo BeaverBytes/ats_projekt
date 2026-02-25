@@ -41,16 +41,17 @@ if ($applicationId <= 0) {
 }
 
 // Handle status update (POST)
-$allowedStatuses = ['submitted', 'in_review', 'interview', 'offer', 'rejected'];
+$statusLabels = [
+    'submitted'  => 'Eingegangen',
+    'in_review'  => 'In Prüfung',
+    'interview'  => 'Interview',
+    'offer'      => 'Angebot',
+    'rejected'   => 'Abgelehnt',
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $newStatus = $_POST['status'] ?? '';
-
-    if (!in_array($newStatus, $allowedStatuses, true)) {
-        http_response_code(400);
-        exit('Ungültiger Status.');
-    }
 
     // Ownership-safe update using JOIN
     if ($role === 'admin') {
@@ -181,9 +182,9 @@ $success = isset($_GET['success']);
                 <form method="post">
                     <div class="form-actions">
                         <select name="status" required>
-                            <?php foreach ($allowedStatuses as $status): ?>
-                                <option value="<?= h($status) ?>" <?= ((string)$application['status'] === $status) ? 'selected' : '' ?>>
-                                    <?= h($status) ?>
+                            <?php foreach ($statusLabels as $value => $label): ?>
+                                <option value="<?= h($value) ?>" <?= ((string)$application['status'] === $value) ? 'selected' : '' ?>>
+                                    <?= h($label) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
