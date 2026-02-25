@@ -5,6 +5,7 @@ declare(strict_types=1);
  * Application detail view.
  * - Ownership enforced via JOIN jobs
  * - Status update via POST (PRG pattern)
+ * - Notes: add + list (multiple notes per application)
  */
 
 header('X-Frame-Options: DENY');
@@ -18,8 +19,7 @@ startSession();
 requireAuth();
 requireAnyRole(['admin', 'recruiter']);
 
-function h(string $value): string
-{
+function h(string $value): string {
     return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
@@ -40,7 +40,7 @@ if ($applicationId <= 0) {
     exit('Bewerbung nicht gefunden.');
 }
 
-// Handle status update (POST)
+// Status mapping: DB value => German label
 $statusLabels = [
     'submitted'  => 'Eingegangen',
     'in_review'  => 'In Prüfung',
@@ -51,6 +51,37 @@ $statusLabels = [
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // NOTES (minimal add)
+    // If note_content is present, treat as "add note" action.
+    if (isset($_POST['note_content'])) {
+        $content = trim((string)$_POST['note_content']);
+
+        if ($content === '') {
+            header('Location: ' . BASE_PATH . '/recruiter/applications/show.php?id=' . $applicationId . '&note_error=empty');
+            exit;
+        }
+
+        if (mb_strlen($content, 'UTF-8') > 2000) {
+            header('Location: ' . BASE_PATH . '/recruiter/applications/show.php?id=' . $applicationId . '&note_error=too_long');
+            exit;
+        }
+
+        // Insert note (ownership is implicitly enforced by this page access)
+        $stmtNote = $pdo->prepare("
+            INSERT INTO notes (application_id, user_id, content, created_at)
+            VALUES (:appId, :userId, :content, CURRENT_TIMESTAMP)
+        ");
+        $stmtNote->execute([
+            ':appId'   => $applicationId,
+            ':userId'  => $userId,
+            ':content' => $content,
+        ]);
+
+        header('Location: ' . BASE_PATH . '/recruiter/applications/show.php?id=' . $applicationId . '&note_success=1');
+        exit;
+    }
+    
+    // Status update
     $newStatus = $_POST['status'] ?? '';
 
     // Ownership-safe update using JOIN
@@ -123,7 +154,24 @@ $stmtDocs = $pdo->prepare("
 $stmtDocs->execute([':id' => $applicationId]);
 $documents = $stmtDocs->fetchAll(PDO::FETCH_ASSOC);
 
+// NOTES (list)
+$stmtNotes = $pdo->prepare("
+    SELECT
+        n.note_id,
+        n.content,
+        n.created_at,
+        u.email AS author_email
+    FROM notes n
+    JOIN users u ON n.user_id = u.user_id
+    WHERE n.application_id = :id
+    ORDER BY n.created_at DESC
+");
+$stmtNotes->execute([':id' => $applicationId]);
+$notes = $stmtNotes->fetchAll(PDO::FETCH_ASSOC);
+
 $success = isset($_GET['success']);
+$noteSuccess = isset($_GET['note_success']);
+$noteError = isset($_GET['note_error']) ? (string)$_GET['note_error'] : ''
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -146,6 +194,16 @@ $success = isset($_GET['success']);
 
                 <?php if ($success): ?>
                     <div class="alert alert-success">Status erfolgreich aktualisiert.</div>
+                <?php endif; ?>
+
+                <?php if ($noteSuccess): ?>
+                    <div class="alert alert-success">Notiz gespeichert.</div>
+                <?php endif; ?>
+
+                <?php if ($noteError === 'empty'): ?>
+                    <div class="alert alert-error">Bitte eine Notiz eingeben.</div>
+                <?php elseif ($noteError === 'too_long'): ?>
+                    <div class="alert alert-error">Notiz ist zu lang (max. 2000 Zeichen).</div>
                 <?php endif; ?>
 
                 <p class="muted">
@@ -207,6 +265,33 @@ $success = isset($_GET['success']);
                                     <span class="muted"> (<?= h((string)$doc['uploaded_at']) ?>)</span>
                                 <?php endif; ?>
                                 – <a href="<?= h(BASE_PATH) ?>/recruiter/documents/download.php?id=<?= (int)$doc['document_id'] ?>">Download</a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+
+                <hr>
+
+                <h2>Notizen</h2>
+
+                <form method="post">
+                    <div class="form-actions" style="flex-direction: column; align-items: stretch;">
+                        <textarea name="note_content" rows="4" placeholder="Neue Notiz…" required></textarea>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Notiz hinzufügen</button>
+                        </div>
+                    </div>
+                </form>
+
+                <?php if (empty($notes)): ?>
+                    <p class="muted">Noch keine Notizen.</p>
+                <?php else: ?>
+                    <ul>
+                        <?php foreach ($notes as $n): ?>
+                            <li>
+                                <strong><?= h((string)$n['author_email']) ?></strong>
+                                <span class="muted"> (<?= h((string)$n['created_at']) ?>)</span>
+                                <div><?= nl2br(h((string)$n['content'])) ?></div>
                             </li>
                         <?php endforeach; ?>
                     </ul>
