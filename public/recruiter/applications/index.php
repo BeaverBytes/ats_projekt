@@ -79,9 +79,20 @@ $sql = "
 ";
 
 $params = [];
+$where = [];
+
 if ($role === 'recruiter') {
-    $sql .= " WHERE j.created_by_user_id = :uid ";
+    $where[] = "j.created_by_user_id = :uid";
     $params[':uid'] = $userId;
+}
+
+if ($role === 'admin' && $selectedRecruiterId > 0) {
+    $where[] = "j.created_by_user_id = :rid";
+    $params[':rid'] = $selectedRecruiterId;
+}
+
+if (!empty($where)) {
+    $sql .= " WHERE " . implode(" AND ", $where);
 }
 
 $sql .= " ORDER BY a.created_at DESC ";
@@ -124,6 +135,7 @@ $success = isset($_GET['success']) ? (string)$_GET['success'] : '';
                     <form method="get">
                         <div class="form-actions">
                             <label for="recruiter_id"><strong>Recruiter:</strong></label>
+
                             <select name="recruiter_id" id="recruiter_id">
                                 <option value="0" <?= $selectedRecruiterId === 0 ? 'selected' : '' ?>>Alle</option>
                                 <?php foreach ($recruiters as $r): ?>
@@ -132,6 +144,7 @@ $success = isset($_GET['success']) ? (string)$_GET['success'] : '';
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+
                             <button type="submit" class="btn btn-secondary">Filtern</button>
                         </div>
                     </form>
