@@ -115,10 +115,11 @@ function createJob(PDO $pdo, int $createdByUserId, array $data): int {
  */
 function listJobsByCreator(PDO $pdo, int $userId): array {
     $stmt = $pdo->prepare(
-        "SELECT job_id, title, location, is_active, created_at
-         FROM jobs
-         WHERE created_by_user_id = :uid
-         ORDER BY created_at DESC"
+        "SELECT j.job_id, j.title, j.location, j.is_active, j.created_at, u.email AS creator_email
+         FROM jobs j
+         JOIN users u ON j.created_by_user_id = u.user_id
+         WHERE j.created_by_user_id = :uid
+         ORDER BY j.created_at DESC"
     );
     $stmt->execute([':uid' => $userId]);
 
@@ -166,9 +167,10 @@ function setJobActive(PDO $pdo, int $jobId, int $isActive): void {
  */
 function listAllJobs(PDO $pdo): array {
     $stmt = $pdo->query(
-        "SELECT job_id, title, description, location, is_active, created_by_user_id, created_at
-         FROM jobs
-         ORDER BY created_at DESC"
+        "SELECT j.job_id, j.title, j.description, j.location, j.is_active, j.created_by_user_id, j.created_at, u.email AS creator_email
+         FROM jobs j
+         JOIN users u ON u.user_id = j.created_by_user_id
+         ORDER BY j.created_at DESC"
     );
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];

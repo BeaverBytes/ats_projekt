@@ -19,8 +19,7 @@ $pdo = getDatabaseConnection();
 $userId = currentUserId();
 $role = currentUserRole();
 
-function h(string $value): string
-{
+function h(string $value): string {
     return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
@@ -142,7 +141,7 @@ $flashError   = $_GET['error'] ?? '';
                                     <td><?= h((string)($job['location'] ?? '')) ?></td>
 
                                     <?php if ($role === 'admin'): ?>
-                                        <td><?= (int)$job['created_by_user_id'] ?></td>
+                                        <td><?=h((string)($job['creator_email'] ?? ''))?></td>
                                     <?php endif; ?>
 
                                     <td>
