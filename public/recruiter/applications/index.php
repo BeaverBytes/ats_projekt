@@ -43,6 +43,23 @@ if ($userId === null || $role === null) {
 
 $pdo = getDatabaseConnection();
 
+//  Admin recruiter filter 
+$selectedRecruiterId = 0;
+$recruiters = [];
+
+if ($role === 'admin') {
+    $selectedRecruiterId = isset($_GET['recruiter_id']) ? (int)$_GET['recruiter_id'] : 0;
+
+    $stmtRecruiters = $pdo->prepare("
+        SELECT user_id, email
+        FROM users
+        WHERE role = 'recruiter'
+        ORDER BY email ASC
+    ");
+    $stmtRecruiters->execute();
+    $recruiters = $stmtRecruiters->fetchAll(PDO::FETCH_ASSOC);
+}
+
 /**
  * Query applications with ownership check via JOIN jobs.
  * NOTE: Ownership is enforced through jobs.created_by_user_id, not only by application_id.
@@ -87,7 +104,6 @@ $success = isset($_GET['success']) ? (string)$_GET['success'] : '';
     </head>
     <body>
         <main class="container">
-
             <div class="form-actions">
                 <a href="<?= h(BASE_PATH) ?>/recruiter/dashboard.php" class="btn btn-secondary">← Dashboard</a>
                 <a href="<?= h(BASE_PATH) ?>/recruiter/jobs/index.php" class="btn btn-secondary">Stellen</a>
@@ -102,6 +118,23 @@ $success = isset($_GET['success']) ? (string)$_GET['success'] : '';
 
                 <?php if ($success): ?>
                     <div class="alert alert-success">Aktion erfolgreich ausgeführt.</div>
+                <?php endif; ?>
+
+                <?php if ($role === 'admin'): ?>
+                    <form method="get">
+                        <div class="form-actions">
+                            <label for="recruiter_id"><strong>Recruiter:</strong></label>
+                            <select name="recruiter_id" id="recruiter_id">
+                                <option value="0" <?= $selectedRecruiterId === 0 ? 'selected' : '' ?>>Alle</option>
+                                <?php foreach ($recruiters as $r): ?>
+                                    <option value="<?= (int)$r['user_id'] ?>" <?= ((int)$r['user_id'] === $selectedRecruiterId) ? 'selected' : '' ?>>
+                                        <?= h((string)$r['email']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button type="submit" class="btn btn-secondary">Filtern</button>
+                        </div>
+                    </form>
                 <?php endif; ?>
 
                 <?php if (empty($applications)): ?>
