@@ -21,6 +21,9 @@ $errors = [];
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // CSRF Check
+    csrfVerify();
+
     // Validate user input
     $errors = validateJobInput($_POST);
 
@@ -86,7 +89,7 @@ function h(string $value): string {
                 </div>
 
                 <form method="post">
-
+                    <?= csrfField() ?>
                     <div class="form-group">
                         <label for="title">Stellenbezeichnung*</label>
                         <input

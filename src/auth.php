@@ -123,3 +123,39 @@ function requireAnyRole(array $roles, string $loginPath = BASE_PATH . '/login.ph
         exit('Access denied');
     }
 }
+
+/**
+ * CSRF protection (minimal).
+ * - Token is stored in session
+ * - Verified on POST requests
+ */
+
+function csrfToken(): string
+{
+    if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function csrfField(): string
+{
+    $t = htmlspecialchars(csrfToken(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    return '<input type="hidden" name="csrf_token" value="' . $t . '">';
+}
+
+function csrfVerify(): void
+{
+    $sessionToken = $_SESSION['csrf_token'] ?? '';
+    $postedToken  = $_POST['csrf_token'] ?? '';
+
+    if (!is_string($sessionToken) || !is_string($postedToken)) {
+        http_response_code(400);
+        exit('Ungültige Anfrage (CSRF).');
+    }
+
+    if ($sessionToken === '' || !hash_equals($sessionToken, $postedToken)) {
+        http_response_code(400);
+        exit('Ungültige Anfrage (CSRF).');
+    }
+}

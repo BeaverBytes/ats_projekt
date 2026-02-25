@@ -51,6 +51,9 @@ $statusLabels = [
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // CSRF check
+     csrfVerify();
+
     // NOTES (minimal add)
     // If note_content is present, treat as "add note" action.
     if (isset($_POST['note_content'])) {
@@ -238,6 +241,7 @@ $noteError = isset($_GET['note_error']) ? (string)$_GET['note_error'] : ''
 
                 <h2>Status</h2>
                 <form method="post">
+                    <?= csrfField() ?>
                     <div class="form-actions">
                         <select name="status" required>
                             <?php foreach ($statusLabels as $value => $label): ?>
@@ -275,6 +279,7 @@ $noteError = isset($_GET['note_error']) ? (string)$_GET['note_error'] : ''
                 <h2>Notizen</h2>
 
                 <form method="post">
+                    <?= csrfField() ?>
                     <div class="form-actions" style="flex-direction: column; align-items: stretch;">
                         <textarea name="note_content" rows="4" placeholder="Neue Notiz…" required></textarea>
                         <div class="form-actions">
