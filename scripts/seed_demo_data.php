@@ -2,11 +2,12 @@
 declare(strict_types=1);
 
 /**
- * Seeds demo jobs and applications (German texts).
+ * Seeds demo jobs, applications and demo PDF documents (German texts).
  *
- * CLI-only script. Safe to run multiple times (idempotent-ish).
- * - Requires that users already exist (admin + recruiters)
- * - Uses recruiter emails to resolve user_id
+ * CLI-only script. Safe to run multiple times (idempotent-ish):
+ * - Jobs: identified by (title + created_by_user_id)
+ * - Applications: identified by (job_id + applicant_email)
+ * - Documents: identified by (application_id + original_filename)
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -17,6 +18,12 @@ require_once __DIR__ . '/../src/db.php';
 
 try {
     $pdo = getDatabaseConnection();
+
+    // Ensure uploads directory exists
+    $uploadsDir = __DIR__ . '/../uploads';
+    if (!is_dir($uploadsDir)) {
+        mkdir($uploadsDir, 0775, true);
+    }
 
     // Resolve recruiter user IDs by email (must exist from user seeder)
     $recruiterEmails = [
@@ -120,6 +127,7 @@ try {
             'motivation' => "Ich möchte als Junior PHP-Entwicklerin in einem Team arbeiten, das Wert auf saubere Architektur und Sicherheit legt. Besonders interessiert mich der Umgang mit Uploads, Sessions und Datenbanken im MVP-Kontext.",
             'status' => 'submitted',
             'consent' => 1,
+            'doc_original' => 'Lebenslauf_Lena_Schneider.pdf',
         ],
         [
             'job_key' => 'recruiter1@example.com|Webentwickler:in (PHP) – Junior',
@@ -130,6 +138,7 @@ try {
             'motivation' => "Ich habe bereits kleinere PHP-Projekte umgesetzt und möchte mich im Bereich Websecurity (XSS/CSRF/SQLi) weiterentwickeln. Der ausgeschriebene Job passt sehr gut zu meinem Profil.",
             'status' => 'in_review',
             'consent' => 1,
+            'doc_original' => 'Lebenslauf_Tobias_Wagner.pdf',
         ],
         [
             'job_key' => 'recruiter1@example.com|Webentwickler:in (PHP) – Junior',
@@ -140,6 +149,7 @@ try {
             'motivation' => "Ich freue mich auf ein strukturiertes Bewerbungsgespräch und möchte meine Kenntnisse in PHP 8, PDO und HTML/CSS einbringen. Außerdem interessiere ich mich für Testing und saubere Code-Reviews.",
             'status' => 'interview',
             'consent' => 1,
+            'doc_original' => 'Lebenslauf_Mira_Klein.pdf',
         ],
 
         // recruiter2 - Frontend job
@@ -152,6 +162,7 @@ try {
             'motivation' => "Ich arbeite gerne an klaren, zugänglichen UIs. Besonders wichtig sind mir konsistente Styles, verständliche Komponenten und eine gute Nutzerführung im Recruiting-Prozess.",
             'status' => 'offer',
             'consent' => 1,
+            'doc_original' => 'Lebenslauf_Jonas_Becker.pdf',
         ],
         [
             'job_key' => 'recruiter2@example.com|Frontend Developer (m/w/d) – HTML/CSS',
@@ -162,9 +173,10 @@ try {
             'motivation' => "Ich habe Erfahrung mit HTML/CSS und möchte mich stärker in Richtung Accessibility und Design-Systeme entwickeln. Die Stelle passt sehr gut, weil ich gerne strukturiert und sauber arbeite.",
             'status' => 'rejected',
             'consent' => 1,
+            'doc_original' => 'Lebenslauf_Sofia_Meyer.pdf',
         ],
 
-        // recruiter1 - inactive support job (still can have applications in DB for demo/admin views)
+        // recruiter1 - inactive support job (still useful for admin demo)
         [
             'job_key' => 'recruiter1@example.com|IT-Support (m/w/d) – 1st Level',
             'first' => 'Paul',
@@ -174,6 +186,7 @@ try {
             'motivation' => "Ich habe bereits im 1st Level Support gearbeitet, kenne Ticket-Systeme und kann komplexe Probleme verständlich erklären. Ich bin zuverlässig und arbeite gerne im Team.",
             'status' => 'submitted',
             'consent' => 1,
+            'doc_original' => 'Lebenslauf_Paul_Neumann.pdf',
         ],
     ];
 
@@ -212,6 +225,69 @@ try {
         )
     ");
 
+    // Seed documents (1 demo PDF per application) 
+    $stmtFindDoc = $pdo->prepare("
+        SELECT document_id
+        FROM documents
+        WHERE application_id = :appId
+          AND original_filename = :original
+        LIMIT 1
+    ");
+
+    $stmtInsertDoc = $pdo->prepare("
+        INSERT INTO documents (
+            application_id,
+            original_filename,
+            stored_filename,
+            mime_type,
+            size_bytes,
+            uploaded_at
+        )
+        VALUES (
+            :appId,
+            :original,
+            :stored,
+            :mime,
+            :size,
+            CURRENT_TIMESTAMP
+        )
+    ");
+
+    // Minimal demo PDF content (good enough for downloads and file presence)
+    $pdfContent = "%PDF-1.4
+                    1 0 obj
+                    << /Type /Catalog /Pages 2 0 R >>
+                    endobj
+                    2 0 obj
+                    << /Type /Pages /Kids [3 0 R] /Count 1 >>
+                    endobj
+                    3 0 obj
+                    << /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144]
+                    /Contents 4 0 R
+                    /Resources << /Font << /F1 5 0 R >> >> >>
+                    endobj
+                    4 0 obj
+                    << /Length 44 >>
+                    stream
+                    BT
+                    /F1 12 Tf
+                    72 100 Td
+                    (Demo Bewerbung) Tj
+                    ET
+                    endstream
+                    endobj
+                    5 0 obj
+                    << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+                    endobj
+                    xref
+                    0 6
+                    0000000000 65535 f 
+                    trailer
+                    << /Root 1 0 R /Size 6 >>
+                    startxref
+                    0
+                    %%EOF";
+
     foreach ($applications as $app) {
         $jobId = $jobIdsByKey[$app['job_key']] ?? 0;
         if ($jobId <= 0) {
@@ -224,28 +300,59 @@ try {
             continue;
         }
 
+        // Create or reuse application
         $stmtFindApp->execute([
             ':job_id' => $jobId,
             ':email'  => $app['email'],
         ]);
 
-        if ($stmtFindApp->fetchColumn()) {
+        $existingAppId = $stmtFindApp->fetchColumn();
+        if ($existingAppId) {
+            $applicationId = (int)$existingAppId;
             echo "Application already exists (skipping): {$app['email']}\n";
+        } else {
+            $stmtInsertApp->execute([
+                ':job_id'     => $jobId,
+                ':first'      => $app['first'],
+                ':last'       => $app['last'],
+                ':email'      => $app['email'],
+                ':phone'      => $app['phone'],
+                ':motivation' => $app['motivation'],
+                ':status'     => $app['status'],
+                ':consent'    => $app['consent'],
+            ]);
+
+            $applicationId = (int)$pdo->lastInsertId();
+            echo "Application created: {$app['email']} ({$app['status']})\n";
+        }
+
+        // Create demo document if missing (bound via documents.application_id)
+        $originalFilename = (string)($app['doc_original'] ?? 'Lebenslauf.pdf');
+
+        $stmtFindDoc->execute([
+            ':appId'    => $applicationId,
+            ':original' => $originalFilename,
+        ]);
+
+        if ($stmtFindDoc->fetchColumn()) {
+            echo "Document already exists (skipping): {$originalFilename} for app #{$applicationId}\n";
             continue;
         }
 
-        $stmtInsertApp->execute([
-            ':job_id'     => $jobId,
-            ':first'      => $app['first'],
-            ':last'       => $app['last'],
-            ':email'      => $app['email'],
-            ':phone'      => $app['phone'],
-            ':motivation' => $app['motivation'],
-            ':status'     => $app['status'],
-            ':consent'    => $app['consent'],
+        $storedFilename = bin2hex(random_bytes(16)) . '.pdf';
+        $filePath = $uploadsDir . '/' . $storedFilename;
+
+        file_put_contents($filePath, $pdfContent, LOCK_EX);
+
+        $stmtInsertDoc->execute([
+            ':appId'    => $applicationId,
+            ':original' => $originalFilename,
+            ':stored'   => $storedFilename,
+            ':mime'     => 'application/pdf',
+            ':size'     => strlen($pdfContent),
         ]);
 
-        echo "Application created: {$app['email']} ({$app['status']})\n";
+        echo "Document created: {$originalFilename} (stored: {$storedFilename}) for app #{$applicationId}\n";
     }
 
     echo "Demo data seeding finished.\n";
