@@ -240,6 +240,13 @@ $noteError = isset($_GET['note_error']) ? (string)$_GET['note_error'] : ''
                 <hr>
 
                 <h2>Status</h2>
+                <?php $statusValue = (string)$application['status']; ?>
+                <p>
+                    Aktueller Status:
+                    <span class="badge badge-<?= h($statusValue) ?>">
+                        <?= h($statusLabels[$statusValue] ?? $statusValue) ?>
+                    </span>
+                </p>
                 <form method="post">
                     <?= csrfField() ?>
                     <div class="form-actions">

@@ -132,8 +132,9 @@ $success = isset($_GET['success']) ? (string)$_GET['success'] : '';
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <span class="badge">
-                                            <?= h($statusLabels[(string)($a['status'] ?? 'submitted')] ?? (string)($a['status'] ?? 'submitted')) ?>
+                                        <?php $statusValue = (string)($a['status'] ?? 'submitted'); ?>
+                                        <span class="badge badge-<?= h($statusValue) ?>">
+                                            <?= h($statusLabels[$statusValue] ?? $statusValue) ?>
                                         </span>
                                     </td>
                                     <td><?= h((string)($a['created_at'] ?? '')) ?></td>

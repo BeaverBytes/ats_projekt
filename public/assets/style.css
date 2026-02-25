@@ -340,3 +340,40 @@ select:focus{
   font-size: 12px;
   text-align: center;
 }
+
+/* ========================================
+   Status Badges
+======================================== */
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-submitted {
+    background-color: #6c757d; 
+    color: #fff;
+}
+
+.badge-in_review {
+    background-color: #0d6efd; 
+    color: #fff;
+}
+
+.badge-interview {
+    background-color: #fd7e14; 
+    color: #fff;
+}
+
+.badge-offer {
+    background-color: #198754; 
+    color: #fff;
+}
+
+.badge-rejected {
+    background-color: #dc3545; 
+    color: #fff;
+}
