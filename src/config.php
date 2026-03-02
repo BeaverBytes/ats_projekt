@@ -7,4 +7,4 @@
  * without changing hardcoded links throughout the codebase.
  */
 
-define('BASE_PATH', '/ats_projekt/public');
+define('BASE_PATH', '');

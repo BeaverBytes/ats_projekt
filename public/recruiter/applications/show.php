@@ -14,6 +14,7 @@ header('X-Content-Type-Options: nosniff');
 require_once __DIR__ . '/../../../src/config.php';
 require_once __DIR__ . '/../../../src/db.php';
 require_once __DIR__ . '/../../../src/auth.php';
+require_once __DIR__ . '/../../../src/applications.php';
 
 startSession();
 requireAuth();
@@ -49,12 +50,14 @@ $statusLabels = [
     'rejected'   => 'Abgelehnt',
 ];
 
+$isAdmin = ($role === 'admin');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // CSRF check
-     csrfVerify();
+    csrfVerify();
 
-    // NOTES (minimal add)
+    // NOTES
     // If note_content is present, treat as "add note" action.
     if (isset($_POST['note_content'])) {
         $content = trim((string)$_POST['note_content']);
@@ -70,243 +73,166 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Insert note (ownership is implicitly enforced by this page access)
-        $stmtNote = $pdo->prepare("
-            INSERT INTO notes (application_id, user_id, content, created_at)
-            VALUES (:appId, :userId, :content, CURRENT_TIMESTAMP)
-        ");
-        $stmtNote->execute([
-            ':appId'   => $applicationId,
-            ':userId'  => $userId,
-            ':content' => $content,
-        ]);
+        addApplicationNote($pdo, $applicationId, $userId, $content);
 
         header('Location: ' . BASE_PATH . '/recruiter/applications/show.php?id=' . $applicationId . '&note_success=1');
         exit;
     }
-    
+
     // Status update
     $newStatus = $_POST['status'] ?? '';
 
-    // Ownership-safe update using JOIN
-    if ($role === 'admin') {
-        $stmt = $pdo->prepare("
-            UPDATE applications
-            SET status = :status
-            WHERE application_id = :id
-        ");
-        $stmt->execute([
-            ':status' => $newStatus,
-            ':id'     => $applicationId,
-        ]);
-    } else {
-        $stmt = $pdo->prepare("
-            UPDATE applications
-            SET status = :status
-            WHERE application_id = :id
-              AND job_id IN (
-                    SELECT job_id
-                    FROM jobs
-                    WHERE created_by_user_id = :uid
-              )
-        ");
-        $stmt->execute([
-            ':status' => $newStatus,
-            ':id'     => $applicationId,
-            ':uid'    => $userId,
-        ]);
-    }
+    updateApplicationStatus($pdo, $applicationId, (string)$newStatus, $userId, $isAdmin);
 
     header('Location: ' . BASE_PATH . '/recruiter/applications/show.php?id=' . $applicationId . '&success=1');
     exit;
 }
 
-// Fetch application (with ownership enforcement)
-$sql = "
-    SELECT
-        a.*,
-        j.title AS job_title,
-        j.location AS job_location
-    FROM applications a
-    JOIN jobs j ON a.job_id = j.job_id
-    WHERE a.application_id = :id
-";
-
-$params = [':id' => $applicationId];
-
-if ($role === 'recruiter') {
-    $sql .= " AND j.created_by_user_id = :uid ";
-    $params[':uid'] = $userId;
-}
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$application = $stmt->fetch(PDO::FETCH_ASSOC);
+// Fetch application + documents (with ownership enforcement)
+$result = getApplicationWithDocuments($pdo, $applicationId, $userId, $isAdmin);
+$application = $result['application'];
+$documents   = $result['documents'];
 
 if (!$application) {
     http_response_code(404);
     exit('Bewerbung nicht gefunden oder Zugriff verweigert.');
 }
 
-// Fetch documents for this application
-$stmtDocs = $pdo->prepare("
-    SELECT document_id, original_filename, uploaded_at
-    FROM documents
-    WHERE application_id = :id
-    ORDER BY uploaded_at ASC
-");
-$stmtDocs->execute([':id' => $applicationId]);
-$documents = $stmtDocs->fetchAll(PDO::FETCH_ASSOC);
-
 // NOTES (list)
-$stmtNotes = $pdo->prepare("
-    SELECT
-        n.note_id,
-        n.content,
-        n.created_at,
-        u.email AS author_email
-    FROM notes n
-    JOIN users u ON n.user_id = u.user_id
-    WHERE n.application_id = :id
-    ORDER BY n.created_at DESC
-");
-$stmtNotes->execute([':id' => $applicationId]);
-$notes = $stmtNotes->fetchAll(PDO::FETCH_ASSOC);
+$notes = listNotesForApplication($pdo, $applicationId);
 
 $success = isset($_GET['success']);
 $noteSuccess = isset($_GET['note_success']);
-$noteError = isset($_GET['note_error']) ? (string)$_GET['note_error'] : ''
+$noteError = isset($_GET['note_error']) ? (string)$_GET['note_error'] : '';
 ?>
 <!DOCTYPE html>
 <html lang="de">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Bewerbung #<?= (int)$application['application_id'] ?> - ATS</title>
+        <title>Bewerbung - ATS</title>
 
         <link rel="stylesheet" href="<?= h(BASE_PATH) ?>/assets/style.css">
     </head>
     <body>
         <main class="container">
             <div class="form-actions">
-                <a href="<?= h(BASE_PATH) ?>/recruiter/applications/index.php" class="btn btn-secondary">← Zur Übersicht</a>
+                <a href="<?= h(BASE_PATH) ?>/recruiter/dashboard.php" class="btn btn-secondary">← Dashboard</a>
+                <a href="<?= h(BASE_PATH) ?>/recruiter/applications/index.php" class="btn btn-secondary">Bewerbungen</a>
+                <a href="<?= h(BASE_PATH) ?>/recruiter/jobs/index.php" class="btn btn-secondary">Stellen</a>
+                <?php if ($role === 'admin'): ?>
+                    <a href="<?= h(BASE_PATH) ?>/admin/dashboard.php" class="btn btn-secondary">Admin</a>
+                <?php endif; ?>
                 <a href="<?= h(BASE_PATH) ?>/logout.php" class="btn btn-secondary">Logout</a>
             </div>
 
             <div class="card">
-                <h1 class="page-title">Bewerbung #<?= (int)$application['application_id'] ?></h1>
+                <h1 class="page-title">Bewerbung #<?= (int)$applicationId ?></h1>
 
                 <?php if ($success): ?>
-                    <div class="alert alert-success">Status erfolgreich aktualisiert.</div>
+                    <div class="alert alert-success">Status wurde aktualisiert.</div>
                 <?php endif; ?>
 
                 <?php if ($noteSuccess): ?>
-                    <div class="alert alert-success">Notiz gespeichert.</div>
+                    <div class="alert alert-success">Notiz wurde gespeichert.</div>
                 <?php endif; ?>
 
                 <?php if ($noteError === 'empty'): ?>
-                    <div class="alert alert-error">Bitte eine Notiz eingeben.</div>
+                    <div class="alert alert-danger">Notiz darf nicht leer sein.</div>
                 <?php elseif ($noteError === 'too_long'): ?>
-                    <div class="alert alert-error">Notiz ist zu lang (max. 2000 Zeichen).</div>
+                    <div class="alert alert-danger">Notiz ist zu lang (max. 2000 Zeichen).</div>
                 <?php endif; ?>
 
-                <p class="muted">
-                    Eingang: <?= h((string)$application['created_at']) ?>
-                </p>
+                <div class="grid">
+                    <div>
+                        <h2>Stelle</h2>
+                        <p>
+                            <strong><?= h((string)($application['job_title'] ?? '')) ?></strong>
+                            <?php if (!empty($application['job_location'])): ?>
+                                <div class="muted"><?= h((string)$application['job_location']) ?></div>
+                            <?php endif; ?>
+                        </p>
+                    </div>
 
-                <hr>
+                    <div>
+                        <h2>Bewerber:in</h2>
 
-                <h2>Stelle</h2>
-                <p><strong><?= h((string)$application['job_title']) ?></strong></p>
-                <?php if (!empty($application['job_location'])): ?>
-                    <p><strong>Ort:</strong> <?= h((string)$application['job_location']) ?></p>
-                <?php endif; ?>
+                        <div><strong><?= h(trim((string)($application['applicant_first_name'] ?? '') . ' ' . (string)($application['applicant_last_name'] ?? ''))) ?></strong></div>
 
-                <hr>
+                        <div class="muted">E-Mail:</div>
+                        <div><?= h((string)($application['applicant_email'] ?? '')) ?></div>
 
-                <h2>Bewerber:in</h2>
-                <p>
-                    <?= h(trim((string)$application['applicant_first_name'] . ' ' . (string)$application['applicant_last_name'])) ?>
-                </p>
-                <p><strong>E-Mail:</strong> <?= h((string)$application['applicant_email']) ?></p>
-                <?php if (!empty($application['applicant_phone'])): ?>
-                    <p><strong>Telefon:</strong> <?= h((string)$application['applicant_phone']) ?></p>
-                <?php endif; ?>
+                        <?php if (!empty($application['applicant_phone'])): ?>
+                            <div class="muted" style="margin-top:6px;">Telefon:</div>
+                            <div><?= h((string)$application['applicant_phone']) ?></div>
+                        <?php endif; ?>
 
-                <hr>
-
-                <h2>Motivation</h2>
-                <p class="job-description"><?= nl2br(h((string)($application['motivation'] ?? ''))) ?></p>
-
-                <hr>
+                        <span class="field-label">Motivation</span>
+                        <div class="box">
+                            <?php if (!empty($application['motivation'])): ?>
+                                <?= nl2br(h((string)$application['motivation'])) ?>
+                            <?php else: ?>
+                                <span class="muted">—</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
 
                 <h2>Status</h2>
-                <?php $statusValue = (string)$application['status']; ?>
-                <p>
-                    Aktueller Status:
-                    <span class="badge badge-<?= h($statusValue) ?>">
-                        <?= h($statusLabels[$statusValue] ?? $statusValue) ?>
-                    </span>
-                </p>
                 <form method="post">
-                    <?= csrfField() ?>
+                    <?= csrfField(); ?>
                     <div class="form-actions">
-                        <select name="status" required>
+                        <select name="status">
+                            <?php $currentStatus = (string)($application['status'] ?? 'submitted'); ?>
                             <?php foreach ($statusLabels as $value => $label): ?>
-                                <option value="<?= h($value) ?>" <?= ((string)$application['status'] === $value) ? 'selected' : '' ?>>
+                                <option value="<?= h($value) ?>" <?= $currentStatus === $value ? 'selected' : '' ?>>
                                     <?= h($label) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-
-                        <button type="submit" class="btn btn-primary">Speichern</button>
+                        <button type="submit" class="btn btn-primary">Status speichern</button>
                     </div>
                 </form>
-
-                <hr>
 
                 <h2>Dokumente</h2>
                 <?php if (empty($documents)): ?>
                     <p>Keine Dokumente vorhanden.</p>
                 <?php else: ?>
                     <ul>
-                        <?php foreach ($documents as $doc): ?>
+                        <?php foreach ($documents as $d): ?>
                             <li>
-                                <?= h((string)$doc['original_filename']) ?>
-                                <?php if (!empty($doc['uploaded_at'])): ?>
-                                    <span class="muted"> (<?= h((string)$doc['uploaded_at']) ?>)</span>
-                                <?php endif; ?>
-                                – <a href="<?= h(BASE_PATH) ?>/recruiter/documents/download.php?id=<?= (int)$doc['document_id'] ?>">Download</a>
+                                <a href="<?= h(BASE_PATH) ?>/recruiter/documents/download.php?id=<?= (int)($d['document_id'] ?? 0) ?>">
+                                    <?= h((string)($d['original_filename'] ?? '')) ?>
+                                </a>
+                                <span class="muted">
+                                    (<?= h((string)($d['uploaded_at'] ?? '')) ?>)
+                                </span>
                             </li>
                         <?php endforeach; ?>
                     </ul>
                 <?php endif; ?>
 
-                <hr>
-
-                <h2>Notizen</h2>
-
                 <form method="post">
-                    <?= csrfField() ?>
-                    <div class="form-actions" style="flex-direction: column; align-items: stretch;">
-                        <textarea name="note_content" rows="4" placeholder="Neue Notiz…" required></textarea>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Notiz hinzufügen</button>
-                        </div>
+                    <?= csrfField(); ?>
+                    <div class="form-group">
+                        <textarea name="note_content" rows="4" maxlength="2000" placeholder="Notiz hinzufügen..."></textarea>
                     </div>
+                    <button type="submit" class="btn btn-secondary">Notiz speichern</button>
                 </form>
 
                 <?php if (empty($notes)): ?>
-                    <p class="muted">Noch keine Notizen.</p>
+                    <p class="muted">Noch keine Notizen vorhanden.</p>
                 <?php else: ?>
-                    <ul>
+                    <div class="notes">
                         <?php foreach ($notes as $n): ?>
-                            <li>
-                                <strong><?= h((string)$n['author_email']) ?></strong>
-                                <span class="muted"> (<?= h((string)$n['created_at']) ?>)</span>
-                                <div><?= nl2br(h((string)$n['content'])) ?></div>
-                            </li>
+                            <div class="note">
+                                <div class="muted">
+                                    <?= h((string)($n['author_email'] ?? '')) ?> · <?= h((string)($n['created_at'] ?? '')) ?>
+                                </div>
+                                <div><?= nl2br(h((string)($n['content'] ?? ''))) ?></div>
+                            </div>
                         <?php endforeach; ?>
-                    </ul>
+                    </div>
                 <?php endif; ?>
 
             </div>

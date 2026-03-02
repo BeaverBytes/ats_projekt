@@ -13,6 +13,8 @@ header('X-Content-Type-Options: nosniff');
 require_once __DIR__ . '/../../../src/config.php';
 require_once __DIR__ . '/../../../src/db.php';
 require_once __DIR__ . '/../../../src/auth.php';
+require_once __DIR__ . '/../../../src/users.php';
+require_once __DIR__ . '/../../../src/applications.php';
 
 startSession();
 requireAuth();
@@ -49,57 +51,11 @@ $recruiters = [];
 
 if ($role === 'admin') {
     $selectedRecruiterId = isset($_GET['recruiter_id']) ? (int)$_GET['recruiter_id'] : 0;
-
-    $stmtRecruiters = $pdo->prepare("
-        SELECT user_id, email
-        FROM users
-        WHERE role = 'recruiter'
-        ORDER BY email ASC
-    ");
-    $stmtRecruiters->execute();
-    $recruiters = $stmtRecruiters->fetchAll(PDO::FETCH_ASSOC);
+    $recruiters = listRecruiters($pdo);
 }
 
-/**
- * Query applications with ownership check via JOIN jobs.
- * NOTE: Ownership is enforced through jobs.created_by_user_id, not only by application_id.
- */
-$sql = "
-    SELECT
-        a.application_id,
-        a.applicant_first_name,
-        a.applicant_last_name,
-        a.applicant_email,
-        a.status,
-        a.created_at,
-        j.title AS job_title,
-        j.location AS job_location
-    FROM applications a
-    JOIN jobs j ON a.job_id = j.job_id
-";
-
-$params = [];
-$where = [];
-
-if ($role === 'recruiter') {
-    $where[] = "j.created_by_user_id = :uid";
-    $params[':uid'] = $userId;
-}
-
-if ($role === 'admin' && $selectedRecruiterId > 0) {
-    $where[] = "j.created_by_user_id = :rid";
-    $params[':rid'] = $selectedRecruiterId;
-}
-
-if (!empty($where)) {
-    $sql .= " WHERE " . implode(" AND ", $where);
-}
-
-$sql .= " ORDER BY a.created_at DESC ";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$isAdmin = ($role === 'admin');
+$applications = listApplications($pdo, $userId, $isAdmin, $selectedRecruiterId);
 
 // Optional success feedback via PRG pattern (?success=1)
 $success = isset($_GET['success']) ? (string)$_GET['success'] : '';

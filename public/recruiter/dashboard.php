@@ -17,6 +17,7 @@ header('X-Content-Type-Options: nosniff');
 require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/db.php';
 require_once __DIR__ . '/../../src/auth.php';
+require_once __DIR__ . '/../../src/dashboard_stats.php';
 
 startSession();
 requireAuth();
@@ -38,61 +39,14 @@ if ($userId === null || $role === null) {
 $pdo = getDatabaseConnection();
 
 // KPI queries (minimal)
-if ($role === 'admin') {
+$pdo = getDatabaseConnection();
 
-    $activeJobs = (int)$pdo->query("SELECT COUNT(*) FROM jobs WHERE is_active = 1")->fetchColumn();
-    $allApps    = (int)$pdo->query("SELECT COUNT(*) FROM applications")->fetchColumn();
+$kpis = getRecruiterDashboardKpis($pdo, $role, $userId);
 
-    $openAppsStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM applications
-        WHERE status IN ('submitted', 'in_review', 'interview')
-    ");
-    $openAppsStmt->execute();
-    $openApps = (int)$openAppsStmt->fetchColumn();
-
-    $offers = (int)$pdo->query("SELECT COUNT(*) FROM applications WHERE status = 'offer'")->fetchColumn();
-
-} else {
-
-    $activeJobsStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM jobs
-        WHERE is_active = 1
-          AND created_by_user_id = :uid
-    ");
-    $activeJobsStmt->execute([':uid' => $userId]);
-    $activeJobs = (int)$activeJobsStmt->fetchColumn();
-
-    $allAppsStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM applications a
-        JOIN jobs j ON a.job_id = j.job_id
-        WHERE j.created_by_user_id = :uid
-    ");
-    $allAppsStmt->execute([':uid' => $userId]);
-    $allApps = (int)$allAppsStmt->fetchColumn();
-
-    $openAppsStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM applications a
-        JOIN jobs j ON a.job_id = j.job_id
-        WHERE j.created_by_user_id = :uid
-          AND a.status IN ('submitted', 'in_review', 'interview')
-    ");
-    $openAppsStmt->execute([':uid' => $userId]);
-    $openApps = (int)$openAppsStmt->fetchColumn();
-
-    $offersStmt = $pdo->prepare("
-        SELECT COUNT(*)
-        FROM applications a
-        JOIN jobs j ON a.job_id = j.job_id
-        WHERE j.created_by_user_id = :uid
-          AND a.status = 'offer'
-    ");
-    $offersStmt->execute([':uid' => $userId]);
-    $offers = (int)$offersStmt->fetchColumn();
-}
+$activeJobs = $kpis['activeJobs'];
+$allApps    = $kpis['allApps'];
+$openApps   = $kpis['openApps'];
+$offers     = $kpis['offers'];
 ?>
 <!DOCTYPE html>
 <html lang="de">

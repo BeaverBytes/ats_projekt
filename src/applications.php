@@ -13,8 +13,9 @@ function normalize_string(?string $value): string {
     return trim((string)$value);
 }
 
+
 // Validate applicant data (NOT the file upload).
- function validateApplicationInput(array $post): array {
+function validateApplicationInput(array $post): array {
     $errors = [];
 
     $firstName = normalize_string($post['first_name'] ?? '');
@@ -68,7 +69,6 @@ function normalize_string(?string $value): string {
 }
 
 // Create application row.
-
 function createApplication(PDO $pdo, array $data): int {
     $sql = "INSERT INTO applications (
             job_id,
@@ -143,8 +143,35 @@ function addDocument(PDO $pdo, int $applicationId, array $doc): void {
 }
 
 // Minimal read helper: list applications for recruiter/admin view.
-function listApplications(PDO $pdo, int $currentUserId, bool $isAdmin): array {
+function listApplications(PDO $pdo, int $currentUserId, bool $isAdmin, int $selectedRecruiterId = 0): array {
+    // Admin: global list, optional recruiter filter
     if ($isAdmin) {
+
+        // Optional admin filter: only applications for jobs created by a specific recruiter
+        if ($selectedRecruiterId > 0) {
+            $sql = "
+                SELECT
+                    a.application_id,
+                    a.job_id,
+                    a.applicant_first_name,
+                    a.applicant_last_name,
+                    a.applicant_email,
+                    a.status,
+                    a.created_at,
+                    j.title AS job_title,
+                    j.created_by_user_id
+                FROM applications a
+                JOIN jobs j ON j.job_id = a.job_id
+                WHERE j.created_by_user_id = :rid
+                ORDER BY a.created_at DESC
+                LIMIT 200
+            ";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(['rid' => $selectedRecruiterId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        }
+
+        // Admin without filter: static query is fine
         $sql = "
             SELECT
                 a.application_id,
@@ -165,6 +192,7 @@ function listApplications(PDO $pdo, int $currentUserId, bool $isAdmin): array {
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
+    // Recruiter: scoped by ownership
     $sql = "
         SELECT
             a.application_id,
@@ -183,7 +211,7 @@ function listApplications(PDO $pdo, int $currentUserId, bool $isAdmin): array {
         LIMIT 200
     ";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([':uid' => $currentUserId]);
+    $stmt->execute(['uid' => $currentUserId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
@@ -195,6 +223,7 @@ function getApplicationWithDocuments(PDO $pdo, int $applicationId, int $currentU
             SELECT
                 a.*,
                 j.title AS job_title,
+                j.location AS job_location,
                 j.created_by_user_id
             FROM applications a
             JOIN jobs j ON j.job_id = a.job_id
@@ -209,6 +238,7 @@ function getApplicationWithDocuments(PDO $pdo, int $applicationId, int $currentU
             SELECT
                 a.*,
                 j.title AS job_title,
+                j.location AS job_location,
                 j.created_by_user_id
             FROM applications a
             JOIN jobs j ON j.job_id = a.job_id
@@ -269,4 +299,34 @@ function updateApplicationStatus(PDO $pdo, int $applicationId, string $newStatus
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':s' => $newStatus, ':aid' => $applicationId, ':uid' => $currentUserId]);
     return $stmt->rowCount() === 1;
+}
+
+// add a note to an application (used in show.php)
+function addApplicationNote(PDO $pdo, int $applicationId, int $userId, string $content): void {
+    $stmt = $pdo->prepare("
+        INSERT INTO notes (application_id, user_id, content, created_at)
+        VALUES (:appId, :userId, :content, CURRENT_TIMESTAMP)
+    ");
+    $stmt->execute([
+        ':appId'   => $applicationId,
+        ':userId'  => $userId,
+        ':content' => $content,
+    ]);
+}
+
+// list notes for an application (used in show.php)
+function listNotesForApplication(PDO $pdo, int $applicationId): array {
+    $stmt = $pdo->prepare("
+        SELECT
+            n.note_id,
+            n.content,
+            n.created_at,
+            u.email AS author_email
+        FROM notes n
+        JOIN users u ON n.user_id = u.user_id
+        WHERE n.application_id = :id
+        ORDER BY n.created_at DESC
+    ");
+    $stmt->execute([':id' => $applicationId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }

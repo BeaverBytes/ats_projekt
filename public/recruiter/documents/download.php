@@ -14,6 +14,7 @@ header('X-Content-Type-Options: nosniff');
 require_once __DIR__ . '/../../../src/config.php';
 require_once __DIR__ . '/../../../src/db.php';
 require_once __DIR__ . '/../../../src/auth.php';
+require_once __DIR__ . '/../../../src/documents.php';
 
 startSession();
 requireAuth();
@@ -36,32 +37,8 @@ if ($documentId <= 0) {
     exit('Dokument nicht gefunden.');
 }
 
-/**
- * Fetch document with ownership enforcement.
- * We join documents -> applications -> jobs to enforce recruiter ownership.
- */
-$sql = "
-    SELECT
-        d.document_id,
-        d.original_filename,
-        d.stored_filename,
-        d.mime_type,
-        d.size_bytes
-    FROM documents d
-    JOIN applications a ON d.application_id = a.application_id
-    JOIN jobs j ON a.job_id = j.job_id
-    WHERE d.document_id = :docId
-";
-$params = [':docId' => $documentId];
-
-if ($role === 'recruiter') {
-    $sql .= " AND j.created_by_user_id = :uid ";
-    $params[':uid'] = $userId;
-}
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$doc = $stmt->fetch(PDO::FETCH_ASSOC);
+// Fetch document with ownership enforcement (DB access in src/)
+$doc = getDocumentByIdForDownload($pdo, $documentId, $role, $userId);
 
 if (!$doc) {
     // Fail closed: do not reveal whether the doc exists
@@ -77,7 +54,7 @@ if ($projectRoot === false) {
 }
 
 $uploadsDir = $projectRoot . DIRECTORY_SEPARATOR . 'uploads';
-$storedName = basename((string)$doc['stored_filename']); // enforce basename
+$storedName = basename((string)($doc['stored_filename'] ?? '')); // enforce basename
 $filePath   = $uploadsDir . DIRECTORY_SEPARATOR . $storedName;
 
 // Ensure file exists and is readable

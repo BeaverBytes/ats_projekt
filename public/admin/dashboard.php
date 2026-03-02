@@ -12,6 +12,7 @@ header('X-Content-Type-Options: nosniff');
 require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/db.php';
 require_once __DIR__ . '/../../src/auth.php';
+require_once __DIR__ . '/../../src/dashboard_stats.php';
 
 startSession();
 requireAuth();
@@ -25,23 +26,15 @@ function h(string $value): string
 $pdo = getDatabaseConnection();
 
 //  KPI queries 
-$activeJobs = (int)$pdo->query("SELECT COUNT(*) FROM jobs WHERE is_active = 1")->fetchColumn();
-$allJobs    = (int)$pdo->query("SELECT COUNT(*) FROM jobs")->fetchColumn();
+$kpis = getAdminDashboardKpis($pdo);
 
-$allApps    = (int)$pdo->query("SELECT COUNT(*) FROM applications")->fetchColumn();
-
-$openAppsStmt = $pdo->prepare("
-    SELECT COUNT(*)
-    FROM applications
-    WHERE status IN ('submitted', 'in_review', 'interview')
-");
-$openAppsStmt->execute();
-$openApps = (int)$openAppsStmt->fetchColumn();
-
-$offers   = (int)$pdo->query("SELECT COUNT(*) FROM applications WHERE status = 'offer'")->fetchColumn();
-$rejected = (int)$pdo->query("SELECT COUNT(*) FROM applications WHERE status = 'rejected'")->fetchColumn();
-
-$recruiters = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'recruiter'")->fetchColumn();
+$activeJobs = $kpis['activeJobs'];
+$allJobs    = $kpis['allJobs'];
+$allApps    = $kpis['allApps'];
+$openApps   = $kpis['openApps'];
+$offers     = $kpis['offers'];
+$rejected   = $kpis['rejected'];
+$recruiters = $kpis['recruiters'];
 ?>
 <!DOCTYPE html>
 <html lang="de">
