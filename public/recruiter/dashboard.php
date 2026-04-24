@@ -21,7 +21,6 @@ require_once __DIR__ . '/../../src/dashboard_stats.php';
 require_once __DIR__ . '/../../src/view_helpers.php';
 
 startSession();
-requireAuth();
 requireAnyRole(['admin', 'recruiter']);
 
 $userId = currentUserId();
@@ -32,9 +31,6 @@ if ($userId === null || $role === null) {
     exit;
 }
 
-$pdo = getDatabaseConnection();
-
-// KPI queries (minimal)
 $pdo = getDatabaseConnection();
 
 $kpis = getRecruiterDashboardKpis($pdo, $role, $userId);

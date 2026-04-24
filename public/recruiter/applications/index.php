@@ -18,7 +18,6 @@ require_once __DIR__ . '/../../../src/applications.php';
 require_once __DIR__ . '/../../../src/view_helpers.php';
 
 startSession();
-requireAuth();
 requireAnyRole(['admin', 'recruiter']);
 
 // Status mapping: DB value => German label
