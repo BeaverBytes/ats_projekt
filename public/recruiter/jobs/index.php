@@ -11,6 +11,7 @@ require_once __DIR__ . '/../../../src/config.php';
 require_once __DIR__ . '/../../../src/db.php';
 require_once __DIR__ . '/../../../src/auth.php';
 require_once __DIR__ . '/../../../src/jobs.php';
+require_once __DIR__ . '/../../../src/view_helpers.php';
 
 requireAnyRole(['admin', 'recruiter']);
 
@@ -18,10 +19,6 @@ $pdo = getDatabaseConnection();
 
 $userId = currentUserId();
 $role = currentUserRole();
-
-function h(string $value): string {
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-}
 
 // Handle publish toggle via POST and redirect (PRG pattern)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

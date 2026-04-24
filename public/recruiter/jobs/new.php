@@ -10,6 +10,7 @@ require_once __DIR__ . '/../../../src/config.php';
 require_once __DIR__ . '/../../../src/db.php';
 require_once __DIR__ . '/../../../src/auth.php';
 require_once __DIR__ . '/../../../src/jobs.php';
+require_once __DIR__ . '/../../../src/view_helpers.php';
 
 // Restrict access to admin and recruiter roles
 requireAnyRole(['admin', 'recruiter']);
@@ -41,11 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: ' . BASE_PATH . '/recruiter/jobs/new.php?success=1');
         exit;
     }
-}
-
-// Escape helper to prevent XSS in output.
-function h(string $value): string {
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 ?>
 

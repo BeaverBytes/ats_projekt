@@ -6,6 +6,7 @@ declare(strict_types=1);
  */
 require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/auth.php';
+require_once __DIR__ . '/../src/view_helpers.php';
 
 // Ensure session is active
 startSession();
@@ -64,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <?php if ($error): ?>
                     <div class="alert alert-error">
-                        <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
+                          <?= h($error); ?>
                     </div>
                 <?php endif; ?>
 
@@ -78,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             name="email"
                             required
                             autocomplete="username"
-                            value="<?= htmlspecialchars((string)($_POST['email'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>"
+                            value="<?= h((string)($_POST['email'] ?? '')); ?>"
                         >
                     </div>
 

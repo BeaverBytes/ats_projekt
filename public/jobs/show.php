@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/db.php';
 require_once __DIR__ . '/../../src/jobs.php';
+require_once __DIR__ . '/../../src/view_helpers.php';
 
 /**
  * Public job detail page.
@@ -33,7 +34,7 @@ if ($job === null) {
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title><?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?> - ATS</title>
+        <title><?= h((string)$job['title']) ?> - ATS</title>
 
         <link rel="stylesheet" href="<?= BASE_PATH ?>/assets/style.css">
     </head>
@@ -44,16 +45,16 @@ if ($job === null) {
             </div>
 
             <div class="card">
-                <h1 class="page-title"><?= htmlspecialchars((string)$job['title'], ENT_QUOTES, 'UTF-8') ?></h1>
+                <h1 class="page-title"><?= h((string)$job['title']) ?></h1>
 
                 <?php if (!empty($job['location'])): ?>
-                    <p><strong>Ort:</strong> <?= htmlspecialchars((string)$job['location'], ENT_QUOTES, 'UTF-8') ?></p>
+                    <p><strong>Ort:</strong> <?= h((string)$job['location']) ?></p>
                 <?php endif ?>
 
                 <hr>
 
                 <h2>Beschreibung</h2>
-                <p class="job-description"><?= htmlspecialchars((string)$job['description'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p class="job-description"><?= h((string)$job['description']) ?></p>
 
                 <hr>
 

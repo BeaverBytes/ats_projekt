@@ -37,7 +37,7 @@ Zwei-Schichten-Aufbau:
 - `public/` — öffentlich erreichbare Einstiegspunkte. Verantwortlich für Request-Handling, Auth-Prüfung, Input-Validierung, Aufruf der Logik-Module und Rendering. Enthält keine SQL-Statements.
 - `src/` — Anwendungslogik. Gekapselte Funktionen für Auth, Datenzugriff und Geschäftslogik. Alle Datenbankzugriffe laufen ausschließlich hier über PDO-Prepared-Statements.
 
-Dadurch bleiben Datenbankdetails und Zugriffsprüfungen an einem Ort, und die Einstiegspunkte sind dünn.
+Dadurch bleiben Datenbankdetails und Zugriffsprüfungen zentral gebündelt, und die Einstiegspunkte enthalten keine Geschäftslogik.
 
 ## Datenmodell
 
@@ -45,8 +45,8 @@ Fünf Entitäten, relationales Schema:
 
 ```
 users  ──< jobs  ──< applications  ──< documents
-  │                        │
-  └──────< notes >─────────┘
+  │							│
+  └──────< notes	>─────┘
 ```
 
 Details in [`data/schema.sql`](data/schema.sql). Integritätsregeln sind zusätzlich in der Datenbank abgesichert (`FOREIGN KEY`, `CHECK`, `NOT NULL`), PHP prüft vorgelagert.

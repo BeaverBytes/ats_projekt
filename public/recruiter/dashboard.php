@@ -18,15 +18,11 @@ require_once __DIR__ . '/../../src/config.php';
 require_once __DIR__ . '/../../src/db.php';
 require_once __DIR__ . '/../../src/auth.php';
 require_once __DIR__ . '/../../src/dashboard_stats.php';
+require_once __DIR__ . '/../../src/view_helpers.php';
 
 startSession();
 requireAuth();
 requireAnyRole(['admin', 'recruiter']);
-
-function h(string $value): string
-{
-    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
 
 $userId = currentUserId();
 $role   = currentUserRole();

@@ -15,15 +15,11 @@ require_once __DIR__ . '/../../../src/db.php';
 require_once __DIR__ . '/../../../src/auth.php';
 require_once __DIR__ . '/../../../src/users.php';
 require_once __DIR__ . '/../../../src/applications.php';
+require_once __DIR__ . '/../../../src/view_helpers.php';
 
 startSession();
 requireAuth();
 requireAnyRole(['admin', 'recruiter']);
-
-//Escape HTML output (XSS mitigation for rendered content).
- function h(string $value): string {
-    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
 
 // Status mapping: DB value => German label
 $statusLabels = [

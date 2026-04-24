@@ -13,12 +13,9 @@ require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/jobs.php';
 require_once __DIR__ . '/../src/applications.php';
+require_once __DIR__ . '/../src/view_helpers.php';
 
 $pdo = getDatabaseConnection();
-
-function h(string $value): string {
-    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-}
 
 // Normalize $_FILES for multiple uploads to a flat list.
 function normalizeFilesArray(array $files): array {
