@@ -25,6 +25,7 @@ function h(string $value): string {
 
 // Handle publish toggle via POST and redirect (PRG pattern)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrfVerify();
     $jobId = filter_input(INPUT_POST, 'job_id', FILTER_VALIDATE_INT);
     $newState = filter_input(INPUT_POST, 'new_state', FILTER_VALIDATE_INT); // expected 0 or 1
 
@@ -150,6 +151,7 @@ $flashError   = $_GET['error'] ?? '';
 
                                     <td>
                                         <form method="post" style="margin:0;">
+                                            <?= csrfField() ?>
                                             <input type="hidden" name="job_id" value="<?= (int)$job['job_id'] ?>">
                                             <input type="hidden" name="new_state" value="<?= (int)$toggleTo ?>">
                                             <button type="submit" class="btn btn-secondary">
