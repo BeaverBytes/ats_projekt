@@ -302,16 +302,49 @@ function updateApplicationStatus(PDO $pdo, int $applicationId, string $newStatus
 }
 
 // add a note to an application (used in show.php)
-function addApplicationNote(PDO $pdo, int $applicationId, int $userId, string $content): void {
-    $stmt = $pdo->prepare("
+function addApplicationNote(
+    PDO $pdo,
+    int $applicationId,
+    int $userId,
+    bool $isAdmin,
+    string $content
+): bool {
+    if ($isAdmin) {
+        $sql = "
+            INSERT INTO notes (application_id, user_id, content, created_at)
+            SELECT :appId, :userId, :content, CURRENT_TIMESTAMP
+            WHERE EXISTS (
+                SELECT 1 FROM applications WHERE application_id = :appId
+            )
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':appId'   => $applicationId,
+            ':userId'  => $userId,
+            ':content' => $content,
+        ]);
+        return $stmt->rowCount() === 1;
+    }
+
+    $sql = "
         INSERT INTO notes (application_id, user_id, content, created_at)
-        VALUES (:appId, :userId, :content, CURRENT_TIMESTAMP)
-    ");
+        SELECT :appId, :userId, :content, CURRENT_TIMESTAMP
+        WHERE EXISTS (
+            SELECT 1
+            FROM applications a
+            JOIN jobs j ON j.job_id = a.job_id
+            WHERE a.application_id = :appId
+              AND j.created_by_user_id = :ownerUid
+        )
+    ";
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        ':appId'   => $applicationId,
-        ':userId'  => $userId,
-        ':content' => $content,
+        ':appId'    => $applicationId,
+        ':userId'   => $userId,
+        ':ownerUid' => $userId,
+        ':content'  => $content,
     ]);
+    return $stmt->rowCount() === 1;
 }
 
 // list notes for an application (used in show.php)

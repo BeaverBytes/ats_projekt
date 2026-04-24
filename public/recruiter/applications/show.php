@@ -72,13 +72,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Insert note (ownership is implicitly enforced by this page access)
-        addApplicationNote($pdo, $applicationId, $userId, $content);
+        // Ownership + INSERT atomar in der Service-Funktion
+        $ok = addApplicationNote($pdo, $applicationId, $userId, $isAdmin, $content);
+
+        if (!$ok) {
+            header('Location: ' . BASE_PATH . '/recruiter/applications/show.php?id=' . $applicationId . '&note_error=denied');
+            exit;
+        }
 
         header('Location: ' . BASE_PATH . '/recruiter/applications/show.php?id=' . $applicationId . '&note_success=1');
         exit;
     }
-
+    
     // Status update
     $newStatus = $_POST['status'] ?? '';
 
@@ -141,6 +146,8 @@ $noteError = isset($_GET['note_error']) ? (string)$_GET['note_error'] : '';
                     <div class="alert alert-danger">Notiz darf nicht leer sein.</div>
                 <?php elseif ($noteError === 'too_long'): ?>
                     <div class="alert alert-danger">Notiz ist zu lang (max. 2000 Zeichen).</div>
+                <?php elseif ($noteError === 'denied'): ?>
+                    <div class="alert alert-danger">Keine Berechtigung für diese Bewerbung.</div>
                 <?php endif; ?>
 
                 <div class="grid">
