@@ -206,3 +206,7 @@ Zeitraum: Wintersemester 2025/26.
 **Alexander Morgan**
 
 - GitHub: [@\BeaverBytes](https://github.com/beaverbytes)
+
+## Lizenz
+
+MIT — siehe [LICENSE](LICENSE).
