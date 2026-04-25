@@ -8,7 +8,6 @@ declare(strict_types=1);
  * - Admin: global counts
  * - Recruiter: own counts via ownership (JOIN jobs.created_by_user_id)
  *
- * UI: German | Comments: English
  */
 
 header('X-Frame-Options: DENY');

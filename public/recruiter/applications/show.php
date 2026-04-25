@@ -68,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Ownership + INSERT atomar in der Service-Funktion
         $ok = addApplicationNote($pdo, $applicationId, $userId, $isAdmin, $content);
 
         if (!$ok) {

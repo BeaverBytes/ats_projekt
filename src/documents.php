@@ -2,8 +2,6 @@
 declare(strict_types=1);
 
 /**
- * src/documents.php
- *
  * Document-related DB helpers.
  * Used for secure downloads with ownership checks.
  * Fetch a document row for download with RBAC/ownership enforcement.

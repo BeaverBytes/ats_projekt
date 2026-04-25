@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
-* KPI aggrreagation for dashboards
+* KPI aggregation for dashboards
 * - Admin dashboard: global KPIs
 * - Recruiter dashboard: scoped by created_by_user_id
  */

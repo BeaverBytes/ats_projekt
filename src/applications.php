@@ -301,7 +301,7 @@ function updateApplicationStatus(PDO $pdo, int $applicationId, string $newStatus
     return $stmt->rowCount() === 1;
 }
 
-// add a note to an application (used in show.php)
+// add a note to an application (only if recruiter owns the job or user is admin)
 function addApplicationNote(
     PDO $pdo,
     int $applicationId,
