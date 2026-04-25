@@ -126,8 +126,10 @@ function listJobsByCreator(PDO $pdo, int $userId): array {
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
-/**
+/** 
  * Retrieve a job by ID without restricting is_active.
+ * Used for management views where recruiters need to access their own jobs
+ * regardless of active status.
  */
 function findJobById(PDO $pdo, int $jobId): ?array {
     $stmt = $pdo->prepare(
@@ -163,7 +165,7 @@ function setJobActive(PDO $pdo, int $jobId, int $isActive): void {
 }
 
 /**
- * Lists all jobs (admin view), including inactive jobs.
+ * List all jobs (admin view), including inactive jobs.
  */
 function listAllJobs(PDO $pdo): array {
     $stmt = $pdo->query(

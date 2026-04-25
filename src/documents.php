@@ -3,8 +3,18 @@ declare(strict_types=1);
 
 /**
  * Document-related DB helpers.
- * Used for secure downloads with ownership checks.
- * Fetch a document row for download with RBAC/ownership enforcement.
+ *
+ * Provides secure access to uploaded application documents,
+ * with RBAC and ownership enforced at the SQL level.
+ */
+
+/**
+ * Fetch a document row for download.
+ *
+ * - Admin: any document.
+ * - Recruiter: only documents attached to applications for jobs they own.
+ *
+ * Returns null if the document does not exist or access is denied.
  */
 function getDocumentByIdForDownload(PDO $pdo, int $documentId, string $role, int $userId): ?array
 {

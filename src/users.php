@@ -4,6 +4,12 @@ declare(strict_types=1);
 /**
  * User-related DB queries.
  */
+
+/**
+ * Returns all users with role 'recruiter', ordered by email.
+ *
+ * Used in the admin filter dropdown on the application list.
+ */
 function listRecruiters(PDO $pdo): array
 {
     $stmt = $pdo->prepare("

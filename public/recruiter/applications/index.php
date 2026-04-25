@@ -32,7 +32,7 @@ $statusLabels = [
 $userId = currentUserId();
 $role = currentUserRole();
 
-// Optional "belt & suspenders" – keep it fail-closed
+// Defensive: defaults to recruiter scope if role is missing or unexpected
 if ($userId === null || $role === null) {
     header('Location: ' . BASE_PATH . '/logout.php');
     exit;

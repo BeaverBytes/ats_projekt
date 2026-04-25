@@ -6,6 +6,10 @@ declare(strict_types=1);
 * - Admin dashboard: global KPIs
 * - Recruiter dashboard: scoped by created_by_user_id
  */
+
+/**
+ * Compute KPIs for the admin dashboard: global counts across the system.
+ */
 function getAdminDashboardKpis(PDO $pdo): array
 {
     $stmt = $pdo->query("
@@ -43,6 +47,13 @@ function getAdminDashboardKpis(PDO $pdo): array
     ];
 }
 
+/**
+ * Compute KPIs for the recruiter dashboard.
+ *
+ * - Admin: returns the same global counts as getAdminDashboardKpis().
+ * - Recruiter: counts are scoped to jobs the user owns
+ *   (jobs.created_by_user_id = $userId).
+ */
 function getRecruiterDashboardKpis(PDO $pdo, string $role, int $userId): array
 {
     if ($role === 'admin') {
@@ -67,7 +78,7 @@ function getRecruiterDashboardKpis(PDO $pdo, string $role, int $userId): array
         ];
     }
 
-    // recruiter scoped
+    // Recruiter path: all queries scoped to jobs the user owns
     $stmt = $pdo->prepare("
         SELECT
           (SELECT COUNT(*)

@@ -10,7 +10,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
-// Ensure session is active
+/**
+ * Start the PHP session if it is not already active.
+ *
+ * Idempotent: safe to call multiple times per request.
+ */
 function startSession(): void {
     if (session_status() !== PHP_SESSION_ACTIVE) {
         session_start();
@@ -31,7 +35,7 @@ function login(string $email, string $password): bool {
 
     $pdo = getDatabaseConnection();
 
-    // Prevent SQL injection via prepared statement
+    // Prepared statement: parameterized query, no string concatenation
     $stmt = $pdo->prepare(
         'SELECT user_id, password_hash, role
          FROM users
@@ -42,12 +46,12 @@ function login(string $email, string $password): bool {
 
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Verify password hash
+    // password_verify uses a constant-time comparison internally
     if (!$user || !password_verify($password, (string)$user['password_hash'])) {
         return false;
     }
 
-    // Prevent session fixation
+    // Session fixation defense: assign a fresh session ID after successful auth
     session_regenerate_id(true);
 
     $_SESSION['user_id'] = (int)$user['user_id'];
@@ -56,7 +60,9 @@ function login(string $email, string $password): bool {
     return true;
 }
 
-// Destroy session and remove authentication data
+/**
+ * Destroy the current session and clear authentication data.
+ */
 function logout(): void {
     startSession();
 
@@ -78,25 +84,34 @@ function logout(): void {
     session_destroy();
 }
 
-// Check if user is authenticated
+/**
+ * Returns true if the current session belongs to a logged-in user.
+ */
 function isAuthenticated(): bool {
     startSession();
     return isset($_SESSION['user_id']);
 }
 
-// Get current user ID
+/**
+ * Returns the user_id of the currently logged-in user, or null if anonymous.
+ */
 function currentUserId(): ?int {
     startSession();
     return isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 }
 
-// Get current user role
+/**
+ * Returns the role ('admin' or 'recruiter') of the logged-in user,
+ * or null if anonymous.
+ */
 function currentUserRole(): ?string {
     startSession();
     return isset($_SESSION['role']) ? (string)$_SESSION['role'] : null;
 }
 
-// Require login, otherwise redirect
+/**
+ * Require an authenticated session. Redirects to login on failure.
+ */
 function requireAuth(string $loginPath = BASE_PATH . '/login.php'): void {
     if (!isAuthenticated()) {
         header('Location: ' . $loginPath);
@@ -104,7 +119,12 @@ function requireAuth(string $loginPath = BASE_PATH . '/login.php'): void {
     }
 }
 
-// Require specific role, otherwise 403
+/**
+ * Require an authenticated session with the given role.
+ *
+ * Internally calls requireAuth() first, then checks the role.
+ * Sends 403 if the role does not match.
+ */
 function requireRole(string $role, string $loginPath = BASE_PATH . '/login.php'): void {
     requireAuth($loginPath);
 
@@ -114,7 +134,12 @@ function requireRole(string $role, string $loginPath = BASE_PATH . '/login.php')
     }
 }
 
-// Require one of multiple roles
+/**
+ * Require an authenticated session with one of the given roles.
+ *
+ * Internally calls requireAuth() first, then checks the role list.
+ * Sends 403 if no role matches.
+ */
 function requireAnyRole(array $roles, string $loginPath = BASE_PATH . '/login.php'): void {
     requireAuth($loginPath);
 
@@ -126,10 +151,15 @@ function requireAnyRole(array $roles, string $loginPath = BASE_PATH . '/login.ph
 
 /**
  * CSRF protection (minimal).
- * - Token is stored in session
- * - Verified on POST requests
+ *
+ * - Token is stored in session, regenerated on first access
+ * - Validated on every state-changing POST request
+ * - Comparison via hash_equals() to avoid timing leaks
  */
 
+/**
+ * Returns the CSRF token for the current session, generating it on first use.
+ */
 function csrfToken(): string
 {
     if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
@@ -138,12 +168,20 @@ function csrfToken(): string
     return $_SESSION['csrf_token'];
 }
 
+/**
+ * Returns a hidden HTML input element containing the CSRF token,
+ * ready to be embedded in a POST form.
+ */
 function csrfField(): string
 {
     $t = htmlspecialchars(csrfToken(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     return '<input type="hidden" name="csrf_token" value="' . $t . '">';
 }
 
+/**
+ * Verifies the CSRF token from $_POST against the session token.
+ * Aborts the request with HTTP 400 if the token is missing or invalid.
+ */
 function csrfVerify(): void
 {
     $sessionToken = $_SESSION['csrf_token'] ?? '';

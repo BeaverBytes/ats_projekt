@@ -17,7 +17,10 @@ require_once __DIR__ . '/../src/view_helpers.php';
 
 $pdo = getDatabaseConnection();
 
-// Normalize $_FILES for multiple uploads to a flat list.
+/**
+ * Flatten the awkward $_FILES structure for <input type="file" multiple>
+ * into a list of one entry per uploaded file.
+ */
 function normalizeFilesArray(array $files): array {
     $normalized = [];
 
@@ -39,7 +42,12 @@ function normalizeFilesArray(array $files): array {
     return $normalized;
 }
 
-// Validate uploaded PDFs (count, size, MIME).
+/**
+ * Validate the uploaded files for the application form.
+ *
+ * Checks: at least one file, max 5 files, each PDF, each max 5 MB.
+ * MIME is verified via finfo (not just by extension or client-supplied type).
+ */
 function validatePdfUploads(array $files, int $maxFiles, int $maxBytesPerFile): array {
     $errors = [];
     $valid = [];
@@ -99,9 +107,17 @@ function validatePdfUploads(array $files, int $maxFiles, int $maxBytesPerFile): 
     ];
 }
 
-// Generate a safe stored filename.
+/**
+ * Generate a safe stored filename for an uploaded file.
+ *
+ * The original filename is discarded entirely:
+ * - Prevents path-traversal attacks via crafted names ('../etc/passwd').
+ * - Avoids filename collisions on the filesystem.
+ * - Strips out any user-controlled data from the stored path.
+ *
+ * The .pdf extension is always enforced.
+ */
 function generateStoredFilename(string $originalName): string {
-    // Force .pdf extension.
     $random = bin2hex(random_bytes(16));
     return $random . '.pdf';
 }
@@ -118,7 +134,6 @@ if ($uploadDir === false) {
     exit;
 }
 
-// GET job_id
 $jobId = filter_input(INPUT_GET, 'job_id', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 if ($jobId === false || $jobId === null) {
     http_response_code(400);

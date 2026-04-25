@@ -3,8 +3,9 @@ declare(strict_types=1);
 
 /**
  * Application detail view.
- * - Ownership enforced via JOIN jobs
- * - Status update via POST (PRG pattern)
+ *
+ * - Ownership enforced via JOIN jobs (in service functions)
+ * - Status updates via POST + redirect (PRG pattern)
  * - Notes: add + list (multiple notes per application)
  */
 

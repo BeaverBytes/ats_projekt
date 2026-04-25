@@ -2,12 +2,11 @@
 declare(strict_types=1);
 
 /**
- * public/recruiter/dashboard.php
+ * Recruiter / admin dashboard.
  *
- * Dashboard with lightweight KPIs (counts).
- * - Admin: global counts
- * - Recruiter: own counts via ownership (JOIN jobs.created_by_user_id)
- *
+ * Shows lightweight KPIs (counts):
+ * - Admin: global numbers
+ * - Recruiter: numbers scoped to owned jobs
  */
 
 header('X-Frame-Options: DENY');

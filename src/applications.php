@@ -9,12 +9,25 @@ declare(strict_types=1);
 
 const APPLICATION_STATUS = ['submitted', 'in_review', 'interview', 'offer', 'rejected',];
 
+/**
+ * Trim a string and convert null to empty string.
+ *
+ * Used to clean user input before validation and storage.
+ */
 function normalize_string(?string $value): string {
     return trim((string)$value);
 }
 
 
-// Validate applicant data (NOT the file upload).
+/**
+ * Validate applicant form data.
+ *
+ * Checks job_id, name, email, phone (optional), motivation (optional)
+ * and the GDPR consent flag. Does NOT validate the uploaded files —
+ * that is handled separately in apply.php.
+ *
+ * Returns an array of error messages (empty if valid).
+ */
 function validateApplicationInput(array $post): array {
     $errors = [];
 
@@ -68,7 +81,12 @@ function validateApplicationInput(array $post): array {
     ];
 }
 
-// Create application row.
+/**
+ * Insert a new application row.
+ *
+ * Caller is responsible for input validation; this function trusts $data
+ * and returns the new application_id.
+ */
 function createApplication(PDO $pdo, array $data): int {
     $sql = "INSERT INTO applications (
             job_id,
@@ -142,7 +160,15 @@ function addDocument(PDO $pdo, int $applicationId, array $doc): void {
     ]);
 }
 
-// Minimal read helper: list applications for recruiter/admin view.
+/**
+ * List applications for recruiter/admin views.
+ *
+ * - Admin: global list, optionally filtered by recruiter via $selectedRecruiterId.
+ * - Recruiter: only applications for jobs they own (jobs.created_by_user_id).
+ *
+ * Ownership is enforced in SQL, not in PHP — recruiters cannot see
+ * applications outside their scope regardless of the URL they request.
+ */
 function listApplications(PDO $pdo, int $currentUserId, bool $isAdmin, int $selectedRecruiterId = 0): array {
     // Admin: global list, optional recruiter filter
     if ($isAdmin) {
@@ -215,7 +241,13 @@ function listApplications(PDO $pdo, int $currentUserId, bool $isAdmin, int $sele
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
-// Load application + documents (for detail view later).
+/**
+ * Load a single application with its uploaded documents.
+ *
+ * Ownership: recruiters can only access applications for jobs they own;
+ * admins can access any application. Returns ['application' => null, 'documents' => []]
+ * when access is denied or the application does not exist.
+ */
 function getApplicationWithDocuments(PDO $pdo, int $applicationId, int $currentUserId, bool $isAdmin): array {
     // Authorization: recruiter can only access applications for their own jobs.
     if ($isAdmin) {
@@ -275,7 +307,15 @@ function getApplicationWithDocuments(PDO $pdo, int $applicationId, int $currentU
     return ['application' => $app, 'documents' => $docs];
 }
 
-// Minimal status update (pipeline step).
+/**
+ * Update the status of an application.
+ *
+ * Allowed status values are defined in APPLICATION_STATUS. Recruiters can
+ * only update applications for jobs they own; admins can update any.
+ *
+ * Returns true if the row was updated, false if the status is invalid
+ * or the user lacks permission.
+ */
 function updateApplicationStatus(PDO $pdo, int $applicationId, string $newStatus, int $currentUserId, bool $isAdmin): bool {
     if (!in_array($newStatus, APPLICATION_STATUS, true)) {
         return false;
@@ -301,7 +341,9 @@ function updateApplicationStatus(PDO $pdo, int $applicationId, string $newStatus
     return $stmt->rowCount() === 1;
 }
 
-// add a note to an application (only if recruiter owns the job or user is admin)
+/**
+ * Add a note to an application (only if recruiter owns the job or user is admin).
+ */
 function addApplicationNote(
     PDO $pdo,
     int $applicationId,
@@ -347,7 +389,12 @@ function addApplicationNote(
     return $stmt->rowCount() === 1;
 }
 
-// list notes for an application (used in show.php)
+/**
+ * List all notes for an application, ordered by creation date.
+ *
+ * Caller is responsible for verifying that the user is allowed to see
+ * this application (typically via getApplicationWithDocuments first).
+ */
 function listNotesForApplication(PDO $pdo, int $applicationId): array {
     $stmt = $pdo->prepare("
         SELECT

@@ -13,17 +13,15 @@ function getDatabaseConnection(): PDO {
         return $pdo;
     }    
 
-    // Path to the SQLite database file (stored outside /public)
     $dbPath = __DIR__ . '/../data/ats.sqlite';
 
-    // Create PDO connection with strict error handling
     $pdo = new PDO('sqlite:' . $dbPath, null, null, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,            // Throw database errors as exceptions
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,            // Throw on DB errors
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Return query results as associative arrays
-        PDO::ATTR_EMULATE_PREPARES => false,                    // Use native prepared statements (disable emulation)
+        PDO::ATTR_EMULATE_PREPARES => false,                    // Use real prepared statements
     ]);
 
-    // Enable foreign key constraints
+    // SQLite has FK support but disables it per connection by default
     $pdo->exec('PRAGMA foreign_keys = ON;');
 
     return $pdo;
