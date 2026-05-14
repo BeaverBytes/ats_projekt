@@ -16,6 +16,8 @@ Das ATS deckt drei Perspektiven ab:
 - **Recruiter-Bereich** — Recruiter:innen verwalten ihre eigenen Stellen, bearbeiten den Status eingehender Bewerbungen und hinterlegen interne Notizen.
 - **Admin-Bereich** — systemweite Übersicht über alle Stellen und Bewerbungen.
 
+![Mockup](docs/mockup/ATS_Mockup.png)
+
 Die Anwendung wurde bewusst ohne Framework umgesetzt, um Routing, Session-Handling, Zugriffskontrolle und Datenbankzugriffe explizit zu implementieren statt sie wegzudelegieren.
 
 ## Tech-Stack
@@ -43,11 +45,7 @@ Dadurch bleiben Datenbankdetails und Zugriffsprüfungen zentral gebündelt, und 
 
 Fünf Entitäten, relationales Schema:
 
-```
-users  ──< jobs  ──< applications  ──< documents
-  │							│
-  └──────< notes	>─────┘
-```
+![ER-Diagram](docs/diagrams/ER_Diagramm.svg)
 
 Details in [`data/schema.sql`](data/schema.sql). Integritätsregeln sind zusätzlich in der Datenbank abgesichert (`FOREIGN KEY`, `CHECK`, `NOT NULL`), PHP prüft vorgelagert.
 
