@@ -2,3 +2,7 @@
 /uploads/* 
 !/uploads/.gitkeep 
 struktur.txt
+.stylelintrc.json
+node_modules/
+package-lock.json
+package.json
